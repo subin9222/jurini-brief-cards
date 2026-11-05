@@ -50,6 +50,21 @@ h1 em, h2 em { font-style:normal; color:var(--yellow); }
 .note { font-size:31px; line-height:1.55; color:#4A5470; margin-top:12px; }
 .memo { font-size:30px; line-height:1.55; color:#CBD3EA; margin-top:30px; }
 .memo b { color:var(--yellow); font-weight:700; }
+.bubble { position:absolute; left:84px; bottom:150px; background:var(--yellow); color:var(--navy); font-size:58px;
+  padding:26px 40px 22px; border-radius:40px; box-shadow:0 10px 0 #B8901F; line-height:1.1; }
+.bubble em { font-style:normal; color:#C2410C; }
+.bubble::after { content:''; position:absolute; right:-34px; bottom:44px; border:20px solid transparent;
+  border-left:30px solid var(--yellow); }
+.bubble-sub { display:block; font-size:28px; color:#5A4A12; margin-top:10px; letter-spacing:-0.5px; }
+.pv-item { padding:14px 0; }
+.pv-label { font-size:34px; }
+.pv-text { font-size:28px; line-height:1.48; color:#3A4462; margin-top:6px; letter-spacing:-0.8px; }
+.pv-text b { color:var(--navy); }
+.pv-sep { height:2px; background:#EADFC8; }
+.watch { margin-top:26px; background:rgba(255,210,74,.14); border:3px solid var(--yellow); color:var(--yellow);
+  border-radius:24px; padding:20px 30px 16px; font-size:36px; line-height:1.3; }
+.cta { position:absolute; left:84px; right:84px; bottom:124px; display:flex; align-items:center; gap:22px; }
+.cta img { width:96px; height:96px; border-radius:50%; border:4px solid var(--cream); flex:none; }
 .foot { position:absolute; left:84px; right:84px; bottom:58px; display:flex; justify-content:space-between;
   font-size:23px; color:var(--mute); border-top:2px solid rgba(255,255,255,.12); padding-top:22px; }
 """
@@ -84,14 +99,16 @@ def page(date_label, inner, n, total, source="", deco=True):
 def build(c):
     cards = []
     cv = c["cover"]
+    question = cv.get("question_html", "그래서 <em>내일은?</em>")
     cards.append((f"""
 <div style='position:relative;margin-top:70px'>
   <div class='tag jua' style='margin-top:0'>{cv.get('pill', '오늘의 증시 3분 정리')}</div>
   {sparkle(640, 120, 20)}
-  <h1 class='jua' style='font-size:118px;line-height:1.12;margin-top:40px;text-shadow:0 8px 0 #060E24'>{cv['title_html']}</h1>
-  <p style='font-size:38px;line-height:1.6;color:#CBD3EA;margin-top:36px'>{cv['sub_html']}</p>
+  <h1 class='jua' style='font-size:112px;line-height:1.12;margin-top:40px;text-shadow:0 8px 0 #060E24'>{cv['title_html']}</h1>
+  <p style='font-size:36px;line-height:1.55;color:#CBD3EA;margin-top:30px'>{cv['sub_html']}</p>
 </div>
-<img src='{AVATAR}' style='position:absolute;right:56px;bottom:120px;width:360px;height:360px;border-radius:50%;
+<div class='bubble jua'>{question}<span class='bubble-sub'>마지막 장에서 알려드려요 👉</span></div>
+<img src='{AVATAR}' style='position:absolute;right:56px;bottom:120px;width:330px;height:330px;border-radius:50%;
   border:8px solid var(--cream);box-shadow:0 12px 0 #060E24'>""", "", False))
 
     d = c["domestic"]
@@ -166,18 +183,21 @@ def build(c):
 </div>
 <p class='memo'>{t['memo_html']}</p>""", ""))
 
-    m = c["summary"]
+    pv = c["preview"]
+    items = ""
+    for i, it in enumerate(pv["items"]):
+        sep = "" if i == 0 else "<div class='pv-sep'></div>"
+        items += f"""{sep}
+  <div class='pv-item'><div class='pv-label jua'>{it['emoji']} {it['label']}</div>
+  <div class='pv-text'>{it['text_html']}</div></div>"""
     cards.append((f"""
-<div style='position:relative;margin-top:60px'>
-  <div class='tag jua' style='margin-top:0'>오늘의 한 줄 요약</div>
-  <h2 class='jua' style='font-size:92px;margin-top:32px;text-shadow:0 8px 0 #060E24'>{m['title_html']}</h2>
-  <p class='memo' style='font-size:36px'>{m['sub_html']}</p>
+<div class='tag jua'>06 · 그래서 내일은?</div>
+<h2 class='jua' style='font-size:68px;margin-top:22px'>{pv['title_html']}</h2>
+<div class='card' style='margin-top:26px;padding:14px 40px'>{items}
 </div>
-<div class='card' style='position:absolute;left:84px;right:84px;bottom:140px;display:flex;align-items:center;gap:30px;padding:30px 36px'>
-  <img src='{AVATAR}' style='width:150px;height:150px;border-radius:50%;flex:none'>
-  <div><div class='jua' style='font-size:42px'>평일 장 마감 후, 3분이면 충분!</div>
-  <div style='font-size:29px;color:#4A5470;margin-top:8px'>팔로우하고 내일 브리핑도 받아보세요 🔔<br><b>@jurini.brief</b></div></div>
-</div>""", "", False))
+<div class='watch jua'>👀 {pv['watch_html']}</div>
+<div class='cta'><img src='{AVATAR}'><div><span class='jua' style='font-size:32px;color:var(--cream)'>내일 브리핑도 놓치지 마세요 🔔</span><br>
+  <span style='font-size:25px;color:var(--mute)'>※ 예측이 아닌 관전 포인트예요 · @jurini.brief</span></div></div>""", pv["source"], False))
     return cards
 
 
