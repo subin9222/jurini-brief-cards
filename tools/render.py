@@ -1,7 +1,11 @@
 """주린이 브리핑 카드뉴스 렌더러 (네이비·크림·옐로 / 1080x1350 JPEG 7장)
 
 사용법:  python3 tools/render.py <content.json> <출력 폴더>
-content.json 구조는 tools/sample_content.json 참고.
+content.json 구조:
+  - 평일: tools/sample_content.json
+  - 토요일(미국 주간 결산): tools/sample_saturday.json
+  - 일요일(미국 경제 공부): tools/sample_sunday.json
+  주말용은 "cards" 배열에 카드 종류(type)를 순서대로 적는 방식이다.
 문자열 필드 중 *_html 은 <br>, <em>(노란 강조), <b> 를 쓸 수 있다.
 """
 import json
@@ -201,11 +205,135 @@ def build(c):
     return cards
 
 
+# ---------------------------------------------------------------------------
+# 주말용 범용 카드 (content.json 에 "cards": [...] 가 있으면 이 방식으로 그린다)
+# type: cover / rows / indicators / list / stocks / term / preview
+# ---------------------------------------------------------------------------
+
+def _tag(t):
+    return f"<div class='tag jua'>{t}</div>"
+
+
+def _memo(d, size=None):
+    if not d.get("memo_html"):
+        return ""
+    st = f" style='font-size:{size}px'" if size else ""
+    return f"<p class='memo'{st}>{d['memo_html']}</p>"
+
+
+def g_cover(d):
+    question = d.get("question_html", "그래서 <em>다음 주는?</em>")
+    bsub = d.get("bubble_sub", "마지막 장에서 알려드려요 👉")
+    return (f"""
+<div style='position:relative;margin-top:70px'>
+  <div class='tag jua' style='margin-top:0'>{d.get('pill', '이번 주 미국 경제 결산')}</div>
+  {sparkle(640, 120, 20)}
+  <h1 class='jua' style='font-size:{d.get('title_size', 108)}px;line-height:1.12;margin-top:40px;text-shadow:0 8px 0 #060E24'>{d['title_html']}</h1>
+  <p style='font-size:36px;line-height:1.55;color:#CBD3EA;margin-top:30px'>{d['sub_html']}</p>
+</div>
+<div class='bubble jua'>{question}<span class='bubble-sub'>{bsub}</span></div>
+<img src='{AVATAR}' style='position:absolute;right:56px;bottom:120px;width:330px;height:330px;border-radius:50%;
+  border:8px solid var(--cream);box-shadow:0 12px 0 #060E24'>""", "", False)
+
+
+def g_rows(d):
+    rows = ""
+    for i, r in enumerate(d["rows"]):
+        mt = "0" if i == 0 else "26px"
+        rows += (f"<div class='row' style='margin-top:{mt}'><span class='label jua'>{r['name']}</span>"
+                 f"<span class='chg jua {r['dir']}'>{r['value']} · {r['pct']}</span></div>")
+    return (f"""{_tag(d['tag'])}
+<h2 class='jua'>{d['title_html']}</h2>
+<div class='card' style='margin-top:36px'>{rows}</div>
+{_memo(d)}""", d.get("source", ""))
+
+
+def g_indicators(d):
+    items = ""
+    for i, it in enumerate(d["items"]):
+        sep = "" if i == 0 else "<div class='pv-sep'></div>"
+        note = f"<div class='pv-text'>{it['note_html']}</div>" if it.get("note_html") else ""
+        items += f"""{sep}
+  <div class='pv-item'><div class='row'><span class='label jua'>{it['name']}</span>
+  <span class='jua {it.get('dir', '')}' {NUM_STYLE_BIG}>{it['value']}</span></div>{note}</div>"""
+    return (f"""{_tag(d['tag'])}
+<h2 class='jua'>{d['title_html']}</h2>
+<div class='card' style='margin-top:32px;padding:14px 40px'>{items}</div>
+{_memo(d)}""", d.get("source", ""))
+
+
+def g_list(d):
+    items = ""
+    for i, it in enumerate(d["items"]):
+        sep = "" if i == 0 else "<div class='pv-sep'></div>"
+        items += f"""{sep}
+  <div class='pv-item'><div class='pv-label jua'>{it['emoji']} {it['label']}</div>
+  <div class='pv-text'>{it['text_html']}</div></div>"""
+    return (f"""{_tag(d['tag'])}
+<h2 class='jua' style='font-size:{d.get('title_size', 70)}px'>{d['title_html']}</h2>
+<div class='card' style='margin-top:30px;padding:14px 40px'>{items}</div>
+{_memo(d)}""", d.get("source", ""))
+
+
+def g_stocks(d):
+    items = ""
+    for i, it in enumerate(d["items"]):
+        mt = "36px" if i == 0 else "24px"
+        items += f"""
+<div class='card' style='margin-top:{mt}'>
+  <div class='label jua'>{it['emoji']} {it['name']} <span class='{it['dir']}' {NUM}>{it['price']} ({it['pct']})</span></div>
+  <div class='note' style='font-size:31px'>{it['desc_html']}</div>
+</div>"""
+    memo = d.get("memo_html", "※ 특정 종목의 매수·매도를 권유하는 내용이 아닙니다.")
+    return (f"""{_tag(d['tag'])}
+<h2 class='jua'>{d['title_html']}</h2>
+{items}
+<p class='memo' style='font-size:27px'>{memo}</p>""", d.get("source", ""))
+
+
+def g_term(d):
+    return (f"""{_tag(d['tag'])}
+<div style='position:relative'>{sparkle(560, 20, 25)}
+<h2 class='jua' style='font-size:{d.get('term_size', 116)}px;margin-top:26px'><em>{d['term']}</em></h2></div>
+<p style='font-size:38px;line-height:1.5;margin-top:22px'>{d['def_html']}</p>
+<div class='card' style='margin-top:40px'>
+  <div class='label jua'>{d['analogy_title']}</div>
+  <div class='note' style='font-size:33px;color:#2A3555'>{d['analogy_html']}</div>
+</div>
+{_memo(d)}""", d.get("source", ""))
+
+
+def g_preview(d):
+    items = ""
+    for i, it in enumerate(d["items"]):
+        sep = "" if i == 0 else "<div class='pv-sep'></div>"
+        items += f"""{sep}
+  <div class='pv-item'><div class='pv-label jua'>{it['emoji']} {it['label']}</div>
+  <div class='pv-text'>{it['text_html']}</div></div>"""
+    note = d.get("cta_note", "※ 예측이 아닌 관전 포인트예요")
+    return (f"""{_tag(d['tag'])}
+<h2 class='jua' style='font-size:68px;margin-top:22px'>{d['title_html']}</h2>
+<div class='card' style='margin-top:26px;padding:14px 40px'>{items}
+</div>
+<div class='watch jua'>👀 {d['watch_html']}</div>
+<div class='cta'><img src='{AVATAR}'><div><span class='jua' style='font-size:32px;color:var(--cream)'>{d.get('cta_title', '다음 브리핑도 놓치지 마세요 🔔')}</span><br>
+  <span style='font-size:25px;color:var(--mute)'>{note} · @jurini.brief</span></div></div>""", d.get("source", ""), False)
+
+
+NUM_STYLE_BIG = "style=\"font-family:'Noto Sans CJK KR',sans-serif;font-weight:900;font-size:44px;letter-spacing:-1.5px\""
+GENERIC = {"cover": g_cover, "rows": g_rows, "indicators": g_indicators, "list": g_list,
+           "stocks": g_stocks, "term": g_term, "preview": g_preview}
+
+
+def build_generic(c):
+    return [GENERIC[d["type"]](d) for d in c["cards"]]
+
+
 def main():
     content = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-    out = Path(sys.argv[2])
+    out = Path(sys.argv[2]).resolve()
     out.mkdir(parents=True, exist_ok=True)
-    cards = build(content)
+    cards = build_generic(content) if "cards" in content else build(content)
     total = len(cards)
     with sync_playwright() as p:
         b = p.chromium.launch(args=["--allow-file-access-from-files"])
