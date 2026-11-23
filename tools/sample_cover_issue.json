@@ -10,7 +10,7 @@
       "scene_top": -10,
       "speaker": "트럼프 美 대통령",
       "target": "엔비디아 차기 CEO",
-      "question_html": "트럼프의 선택, 열흘 사이 무슨 일이? 👉",
+      "question_html": "트럼프의 선택, 열흘 사이 무슨 일이? 바로 다음 장 👉",
       "source": "머니투데이방송·전자신문·서울신문",
       "speaker_img": "cast/trump_point.png",
       "speaker_h": 600,
@@ -18,7 +18,7 @@
     },
     {
       "type": "timeline",
-      "tag": "04 · 오늘의 이슈",
+      "tag": "01 · 오늘의 이슈",
       "category": "미국·반도체",
       "title_html": "팀 쿡이라더니<br><em>“젠슨 황, 돌아와라”</em>",
       "items": [

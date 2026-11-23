@@ -339,9 +339,15 @@ def svg_diverge(spec, w=820):
     items = spec["items"]
     row, lab_w = 54, 250
     h = row * len(items) + 8
-    zero = lab_w + (w - lab_w) / 2
-    half = (w - lab_w) / 2 - 125
-    m = max(abs(float(it["value"])) for it in items) or 1
+    vals = [float(it["value"]) for it in items]
+    if all(v <= 0 for v in vals):      # 모두 하락: 0을 오른쪽 끝에 두고 왼쪽으로 길게
+        zero, half = w - 8, w - 8 - lab_w - 130
+    elif all(v >= 0 for v in vals):    # 모두 상승: 0을 왼쪽에 두고 오른쪽으로 길게
+        zero, half = lab_w + 10, w - lab_w - 10 - 130
+    else:
+        zero = lab_w + (w - lab_w) / 2
+        half = (w - lab_w) / 2 - 125
+    m = max(abs(v) for v in vals) or 1
     out = [f"<svg width='{w}' height='{h}' viewBox='0 0 {w} {h}' xmlns='http://www.w3.org/2000/svg'>",
            f"<line x1='{zero:.1f}' x2='{zero:.1f}' y1='0' y2='{h}' stroke='#C9BDA4' stroke-width='2' stroke-dasharray='4 5'/>"]
     for i, it in enumerate(items):
@@ -486,6 +492,14 @@ def svg_person(x, y, s, body, face_q=False, point=False, tie=None):
     return "".join(parts)
 
 
+def svg_qcard(cx, cy):
+    """정답이 '사람'이 아니라 '정책·물건'일 때: 물음표가 적힌 카드 한 장."""
+    return (f"<g transform='rotate(8 {cx} {cy})'>"
+            f"<rect x='{cx-150}' y='{cy-205}' width='300' height='410' rx='30' fill='#FFF6E4' stroke='#FFD24A' stroke-width='12'/>"
+            f"<rect x='{cx-118}' y='{cy-173}' width='236' height='346' rx='18' fill='none' stroke='#E7DCC6' stroke-width='4' stroke-dasharray='10 8'/>"
+            f"<text x='{cx}' y='{cy+78}' text-anchor='middle' font-family=\"'Jua'\" font-size='240' fill='#0E1A3A'>?</text></g>")
+
+
 def g_cover_issue(d):
     """이슈 표지: 질문형 제목 + '누가 누구를' 장면(실루엣) + 말풍선 인용.
     d: pill, title_html, speaker(이름표), quote_html(말풍선), target(물음표 인물 이름표), sub_html, question_html"""
@@ -495,7 +509,8 @@ def g_cover_issue(d):
              f"<stop offset='100%' stop-color='#FFD24A' stop-opacity='0'/></radialGradient></defs>"
              f"<ellipse cx='690' cy='330' rx='200' ry='290' fill='url(#spot)'/>"
              + ("" if d.get("speaker_img") else svg_person(205, 250, 0.92, "#E9E1CF", point=True, tie="#E5483A"))
-             + ("" if d.get("target_img") else svg_person(690, 250, 0.92, "#25365F", face_q=True))
+             + ("" if d.get("target_img") else
+                (svg_qcard(690, 300) if d.get("target_kind") == "card" else svg_person(690, 250, 0.92, "#25365F", face_q=True)))
              + "</svg>")
     bub = f"<div class='qbub'>{d['quote_html']}</div>" if d.get("quote_html") else ""
     who = f"<div class='quote-by'>{d['quote_by']}</div>" if d.get("quote_by") else ""
