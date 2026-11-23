@@ -76,7 +76,7 @@
   5. **도감에 저장**: `tools/cast/cast.json`에 인물(이름표 문구)과 동작별 파일명을 추가하고 커밋한다. 다음부터는 이 그림을 재사용한다.
   6. content.json 표지에 `"speaker_img": "../../tools/cast/<파일명>"`(content.json 위치 기준)을 넣는다. 크기 `speaker_h`(기본 600), 위치 `speaker_x`(기본 −10).
   7. **컨펌 요청 메시지에 반드시 적는다**: "오늘 Higgsfield에서 그림을 1장 새로 만들었어요(작업 ID: …, 만든 시각: …). Higgsfield 생성 내역에서 지워 주세요." 도감 그림을 재사용한 날은 "새로 만든 그림은 없어요"라고 적는다.
-  8. 캐리커처를 쓴 날은 Metricool 게시 때 `instagramData.isAiGenerated: true`로 표시한다. 비용은 한 장에 약 0.75크레딧.
+  8. AI로 그린 그림(캐리커처·주린이·비유 그림)을 쓴 날은 Metricool 게시 때 `instagramData.isAiGenerated: true`로 표시한다(주린이가 매일 들어가므로 사실상 매일 true). 비용은 한 장에 약 0.75크레딧.
 - **그림 규칙**: 실존 인물의 **사진은 절대 쓰지 않는다.**
   - **캐리커처는 '완전히 유명한 사람'만** (2026-11-23 운영자 지시): 얼굴만 보고 대부분이 알아보는 세계적 인물(미국 대통령, 빅테크 CEO 등)만 캐리커처로 그린다. 국내 장관·관료, 한국은행·금융당국 수장, 애널리스트, 덜 알려진 기업인 등은 **이름표 달린 실루엣**으로 그리고 Higgsfield로 새로 만들지 않는다.
   - 정답이 사람이 아니라 정책·제도·물건이면 `"target_kind": "card"`로 물음표 카드를 그린다(예시: `tools/sample_sunday_issue.json`).
@@ -168,7 +168,7 @@ Metricool `createScheduledPost`:
 - blogId `7871767`, providers `[{"network":"instagram"}]`, `instagramData: {"type":"POST"}`
 - media: 위 raw 주소 7개(순서대로), text: caption.txt 전문
 - `draft: false`, `autoPublish: true`
-- 표지에 도감의 캐리커처를 쓴 날은 `instagramData`에 `"isAiGenerated": true`를 넣는다.
+- AI로 그린 그림(캐리커처·주린이·비유 그림)이 하나라도 들어간 날은 `instagramData`에 `"isAiGenerated": true`를 넣는다(주린이가 매일 들어가므로 사실상 매일).
 - 날짜: 지금(한국 시간)으로부터 5분 뒤, `publicationDate.timezone: "Asia/Seoul"`
 게시 예약 결과(plannerUrl)를 운영자에게 알린다. 오류가 나면 내용을 그대로 전달하고 재시도는 한 번만.
 
