@@ -489,18 +489,24 @@ def g_cover_issue(d):
              f"<defs><radialGradient id='spot' cx='50%' cy='40%' r='60%'><stop offset='0%' stop-color='#FFD24A' stop-opacity='.38'/>"
              f"<stop offset='100%' stop-color='#FFD24A' stop-opacity='0'/></radialGradient></defs>"
              f"<ellipse cx='690' cy='330' rx='200' ry='290' fill='url(#spot)'/>"
-             + svg_person(205, 250, 0.92, "#E9E1CF", point=True, tie="#E5483A")
+             + ("" if d.get("speaker_img") else svg_person(205, 250, 0.92, "#E9E1CF", point=True, tie="#E5483A"))
              + svg_person(690, 250, 0.92, "#25365F", face_q=True)
              + "</svg>")
     bub = f"<div class='qbub'>{d['quote_html']}</div>" if d.get("quote_html") else ""
     who = f"<div class='quote-by'>{d['quote_by']}</div>" if d.get("quote_by") else ""
     scene_top = d.get("scene_top", 16)
+    speaker_img = ""
+    if d.get("speaker_img"):  # AI로 그린 캐리커처(배경 제거 PNG). content.json 기준 상대 경로
+        src = (CONTENT_DIR / d["speaker_img"]).resolve().as_uri()
+        speaker_img = (f"<img src='{src}' style='position:absolute;left:{d.get('speaker_x', -10)}px;bottom:-30px;"
+                       f"height:{d.get('speaker_h', 600)}px;filter:drop-shadow(0 10px 0 #060E24)'>")
     return (f"""
 <div class='tag jua' style='margin-top:44px'>{d.get('pill', '오늘의 이슈')}</div>
 <h1 class='jua' style='font-size:{d.get('title_size', 96)}px;line-height:1.16;margin-top:24px;text-shadow:0 8px 0 #060E24'>{d['title_html']}</h1>
 {who}
 <div style='position:relative;margin-top:{scene_top}px;height:{h - 40}px;overflow:hidden'>
   <div style='position:absolute;left:-16px;top:0'>{scene}</div>
+  {speaker_img}
   {bub}
   <div class='nametag' style='left:60px'>{d['speaker']}</div>
   <div class='nametag' style='left:556px;background:#FFD24A;color:#0E1A3A'>{d['target']}</div>
@@ -588,7 +594,12 @@ def build_generic(c):
     return [GENERIC[d["type"]](d) for d in c["cards"]]
 
 
+CONTENT_DIR = Path(".")
+
+
 def main():
+    global CONTENT_DIR
+    CONTENT_DIR = Path(sys.argv[1]).resolve().parent
     content = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
     out = Path(sys.argv[2]).resolve()
     out.mkdir(parents=True, exist_ok=True)
