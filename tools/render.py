@@ -88,6 +88,14 @@ h1 em, h2 em { font-style:normal; color:var(--yellow); }
 .stats .lb { font-size:26px; color:#4A5470; letter-spacing:-0.6px; }
 .stats .vl { font-family:'Noto Sans CJK KR',sans-serif; font-weight:900; font-size:46px; letter-spacing:-1.5px; line-height:1.2; margin-top:4px; }
 .stats .sb { font-size:23px; color:#6B7390; margin-top:4px; letter-spacing:-0.5px; line-height:1.35; }
+.qbub { position:absolute; left:250px; top:0; max-width:520px; background:#fff; color:var(--navy); border-radius:28px;
+  padding:20px 26px 18px; font-size:30px; line-height:1.4; letter-spacing:-0.8px; box-shadow:0 8px 0 #060E24; }
+.qbub::after { content:''; position:absolute; left:40px; bottom:-28px; border:16px solid transparent; border-top:20px solid #fff; }
+.qbub b { color:var(--up); }
+.nametag { position:absolute; bottom:28px; background:var(--cream); color:var(--navy); font-size:28px; font-weight:800;
+  padding:8px 20px 6px; border-radius:12px; box-shadow:0 6px 0 #060E24; letter-spacing:-0.6px; }
+.cover-q { position:absolute; left:84px; right:84px; bottom:130px; text-align:center; background:var(--yellow); color:var(--navy);
+  font-size:44px; padding:18px 20px 14px; border-radius:24px; box-shadow:0 8px 0 #B8901F; }
 .foot { position:absolute; left:84px; right:84px; bottom:58px; display:flex; justify-content:space-between;
   font-size:23px; color:var(--mute); border-top:2px solid rgba(255,255,255,.12); padding-top:22px; }
 """
@@ -441,6 +449,48 @@ def g_preview(d):
   <span style='font-size:25px;color:var(--mute)'>{note} · @jurini.brief</span></div></div>""", d.get("source", ""), False)
 
 
+def svg_person(x, y, s, body, face_q=False, point=False, tie=None):
+    """얼굴 없는 실루엣 인물. (x, y)=머리 중심, s=크기 배율. 실존 인물의 얼굴은 그리지 않는다."""
+    hr = 62 * s
+    parts = []
+    if point:  # 오른쪽으로 뻗은 팔(지목)
+        ax, ay = x + 70 * s, y + 175 * s
+        parts.append(f"<g transform='rotate(-14 {ax:.0f} {ay:.0f})'><rect x='{ax:.0f}' y='{ay-24*s:.0f}' width='{230*s:.0f}' height='{48*s:.0f}' rx='{24*s:.0f}' fill='{body}'/>"
+                     f"<circle cx='{ax+232*s:.0f}' cy='{ay:.0f}' r='{30*s:.0f}' fill='{body}'/>"
+                     f"<rect x='{ax+236*s:.0f}' y='{ay-12*s:.0f}' width='{58*s:.0f}' height='{20*s:.0f}' rx='{10*s:.0f}' fill='{body}'/></g>")
+    parts.append(f"<path d='M{x-150*s:.0f},{y+420*s:.0f} C{x-150*s:.0f},{y+190*s:.0f} {x-95*s:.0f},{y+105*s:.0f} {x:.0f},{y+105*s:.0f} "
+                 f"C{x+95*s:.0f},{y+105*s:.0f} {x+150*s:.0f},{y+190*s:.0f} {x+150*s:.0f},{y+420*s:.0f} Z' fill='{body}'/>")
+    if tie:
+        parts.append(f"<path d='M{x:.0f},{y+112*s:.0f} l{-16*s:.0f},{22*s:.0f} l{16*s:.0f},{130*s:.0f} l{16*s:.0f},{-130*s:.0f} Z' fill='{tie}'/>")
+    parts.append(f"<circle cx='{x:.0f}' cy='{y:.0f}' r='{hr:.0f}' fill='{body}'/>")
+    if face_q:
+        parts.append(f"<text x='{x:.0f}' y='{y+34*s:.0f}' text-anchor='middle' font-family=\"'Jua'\" font-size='{100*s:.0f}' fill='#FFD24A'>?</text>")
+    return "".join(parts)
+
+
+def g_cover_issue(d):
+    """이슈 표지: 질문형 제목 + '누가 누구를' 장면(실루엣) + 말풍선 인용.
+    d: pill, title_html, speaker(이름표), quote_html(말풍선), target(물음표 인물 이름표), sub_html, question_html"""
+    w, h = 912, 640
+    scene = (f"<svg width='{w}' height='{h}' viewBox='0 0 {w} {h}' xmlns='http://www.w3.org/2000/svg'>"
+             f"<defs><radialGradient id='spot' cx='50%' cy='40%' r='60%'><stop offset='0%' stop-color='#FFD24A' stop-opacity='.38'/>"
+             f"<stop offset='100%' stop-color='#FFD24A' stop-opacity='0'/></radialGradient></defs>"
+             f"<ellipse cx='690' cy='330' rx='200' ry='290' fill='url(#spot)'/>"
+             + svg_person(205, 250, 0.92, "#E9E1CF", point=True, tie="#E5483A")
+             + svg_person(690, 250, 0.92, "#25365F", face_q=True)
+             + "</svg>")
+    return (f"""
+<div class='tag jua' style='margin-top:44px'>{d.get('pill', '오늘의 이슈')}</div>
+<h1 class='jua' style='font-size:{d.get('title_size', 96)}px;line-height:1.12;margin-top:24px;text-shadow:0 8px 0 #060E24'>{d['title_html']}</h1>
+<div style='position:relative;margin-top:16px;height:{h}px'>
+  <div style='position:absolute;left:-16px;top:0'>{scene}</div>
+  <div class='qbub'>{d['quote_html']}</div>
+  <div class='nametag' style='left:60px'>{d['speaker']}</div>
+  <div class='nametag' style='left:556px;background:#FFD24A;color:#0E1A3A'>{d['target']}</div>
+</div>
+<div class='cover-q jua'>{d.get('question_html', '정답은 안에서 👉')}</div>""", d.get("source", ""), False)
+
+
 def g_market(d):
     """국내 증시: 지수 박스 2개 + 최근 흐름 꺾은선 + 3줄 요약"""
     boxes = "".join(
@@ -493,7 +543,8 @@ def g_issue(d):
 NUM_STYLE_BIG = "style=\"font-family:'Noto Sans CJK KR',sans-serif;font-weight:900;font-size:44px;letter-spacing:-1.5px\""
 GENERIC = {"cover": g_cover, "rows": g_rows, "indicators": g_indicators, "list": g_list,
            "stocks": g_stocks, "term": g_term, "preview": g_preview,
-           "market": g_market, "flows": g_flows, "bars": g_bars, "issue": g_issue}
+           "market": g_market, "flows": g_flows, "bars": g_bars, "issue": g_issue,
+           "cover_issue": g_cover_issue}
 
 
 def build_generic(c):
