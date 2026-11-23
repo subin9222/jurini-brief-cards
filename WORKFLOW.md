@@ -66,7 +66,8 @@
 - **답은 04 카드에서 이야기로 푼다.** 사건이 날짜를 따라 이어지는 이슈는 `timeline` 카드를 쓴다:
   `items` 3개(날짜·소제목·2줄 설명), 마지막 항목은 "지금"의 상황(노란색 강조). 그 아래 3줄 요약은 "그래서 무슨 의미인지"를 쉽게 푼다.
   타임라인의 각 사건은 **두 곳 이상 언론**으로 확인된 것만 넣는다. 한 곳에서만 보도된 내용은 빼거나 "(보도)"로 표시한다.
-- **발언한 인물의 캐리커처 넣기 — 도감 우선, 없으면 Higgsfield로 그려 도감에 저장 (2026-11-23)**: 정답 인물(`target`)은 항상 물음표 실루엣으로 둔다.
+- **정답 인물(`target`)은 '완전 블러 + 물음표'로 (2026-11-23)**: 정답 인물의 캐리커처를 아주 흐리게 깔고 큰 물음표를 올린다. 표지에 `"target_img": "../../tools/cast/<파일명>"`을 넣으면 렌더러가 자동으로 흐리게 처리한다(`target_blur` 기본 26, 누구인지 알아볼 수 없을 만큼 유지). 그림은 아래 발언자와 같은 방법(도감 우선, 없으면 Higgsfield로 그려 도감에 저장)으로 구한다. 동작은 "standing calmly, arms relaxed"처럼 가만히 선 자세로 그린다. 그림을 구하지 못하면 `target_img` 없이 물음표 실루엣으로 둔다. 인터넷에서 찾은 남의 그림·사진은 흐리게 하더라도 쓰지 않는다.
+- **발언한 인물의 캐리커처 넣기 — 도감 우선, 없으면 Higgsfield로 그려 도감에 저장 (2026-11-23)**:
   1. **도감 먼저 확인**: `tools/cast/cast.json`에 그 인물과 맞는 동작(point=지목, talk=말하기 등)이 있으면 그 그림을 쓴다. 새로 그리지 않는다.
   2. **도감에 없을 때만** Higgsfield `generate_image`: model `gpt_image_2_6`, `aspect_ratio` "1:1", `count` 1. 프롬프트 틀(이름·특징·동작만 바꾼다):
      "Cute chibi cartoon caricature of {영문 이름} for an editorial news illustration: big head, small body, {대표적 외모 특징 2~3개}, {옷차림}, {표정}, standing three-quarter view and {동작: pointing his/her index finger strongly to the right side of the frame / raising one hand while speaking}. Flat 2D vector style with thick dark outlines and soft cel shading, Korean webtoon chibi style, friendly and humorous, not mocking. Plain solid deep navy background (#0E1A3A), full body visible, character placed on the left half, empty space on the right. No text, no logos, no flags."

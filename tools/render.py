@@ -107,6 +107,11 @@ h1 em, h2 em { font-style:normal; color:var(--yellow); }
 .tl-title { font-size:32px; margin-top:0; }
 .tl-text { font-size:25px; line-height:1.42; color:#3A4462; margin-top:4px; letter-spacing:-0.8px; }
 .tl-now .tl-text { color:#3A2E08; }
+.mystery { position:absolute; bottom:-20px; width:440px; height:520px; }
+.mystery img { position:absolute; left:0; bottom:0; width:440px; height:520px; object-fit:cover; object-position:center top;
+  -webkit-mask-image:radial-gradient(ellipse 50% 52% at 50% 46%, #000 55%, transparent 100%); }
+.mystery .mq { position:absolute; left:0; right:0; top:120px; text-align:center; font-size:260px; line-height:1; color:var(--yellow);
+  text-shadow:0 10px 0 #060E24, 0 0 40px rgba(14,26,58,.85); }
 .cover-q { position:absolute; left:84px; right:84px; bottom:130px; text-align:center; background:var(--yellow); color:var(--navy);
   font-size:44px; padding:18px 20px 14px; border-radius:24px; box-shadow:0 8px 0 #B8901F; }
 .foot { position:absolute; left:84px; right:84px; bottom:58px; display:flex; justify-content:space-between;
@@ -490,7 +495,7 @@ def g_cover_issue(d):
              f"<stop offset='100%' stop-color='#FFD24A' stop-opacity='0'/></radialGradient></defs>"
              f"<ellipse cx='690' cy='330' rx='200' ry='290' fill='url(#spot)'/>"
              + ("" if d.get("speaker_img") else svg_person(205, 250, 0.92, "#E9E1CF", point=True, tie="#E5483A"))
-             + svg_person(690, 250, 0.92, "#25365F", face_q=True)
+             + ("" if d.get("target_img") else svg_person(690, 250, 0.92, "#25365F", face_q=True))
              + "</svg>")
     bub = f"<div class='qbub'>{d['quote_html']}</div>" if d.get("quote_html") else ""
     who = f"<div class='quote-by'>{d['quote_by']}</div>" if d.get("quote_by") else ""
@@ -500,6 +505,13 @@ def g_cover_issue(d):
         src = (CONTENT_DIR / d["speaker_img"]).resolve().as_uri()
         speaker_img = (f"<img src='{src}' style='position:absolute;left:{d.get('speaker_x', -10)}px;bottom:-30px;"
                        f"height:{d.get('speaker_h', 600)}px;filter:drop-shadow(0 10px 0 #060E24)'>")
+    target_img = ""
+    if d.get("target_img"):  # 정답 인물 그림을 완전히 흐리게 + 물음표
+        src = (CONTENT_DIR / d["target_img"]).resolve().as_uri()
+        blur = d.get("target_blur", 26)
+        target_img = (f"<div class='mystery' style='left:{d.get('target_x', 470)}px'>"
+                      f"<img src='{src}' style='filter:blur({blur}px) saturate(1.1)'>"
+                      f"<div class='mq jua'>?</div></div>")
     return (f"""
 <div class='tag jua' style='margin-top:44px'>{d.get('pill', '오늘의 이슈')}</div>
 <h1 class='jua' style='font-size:{d.get('title_size', 96)}px;line-height:1.16;margin-top:24px;text-shadow:0 8px 0 #060E24'>{d['title_html']}</h1>
@@ -507,6 +519,7 @@ def g_cover_issue(d):
 <div style='position:relative;margin-top:{scene_top}px;height:{h - 40}px;overflow:hidden'>
   <div style='position:absolute;left:-16px;top:0'>{scene}</div>
   {speaker_img}
+  {target_img}
   {bub}
   <div class='nametag' style='left:60px'>{d['speaker']}</div>
   <div class='nametag' style='left:556px;background:#FFD24A;color:#0E1A3A'>{d['target']}</div>
