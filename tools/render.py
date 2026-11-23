@@ -640,12 +640,13 @@ def g_cover_issue(d):
     d: pill, title_html, speaker(이름표), quote_html(말풍선), target(물음표 인물 이름표), sub_html, question_html"""
     w, h = 912, 640
     solo = d.get("speaker_kind") == "none"   # 말한 주체 없이 정답 카드만 가운데에 크게
+    mascot = d.get("mascot")                  # 주린이 캐릭터 표정(예: "surprised") — 전광판 뒤에서 고개를 내민다
     if solo:
-        cx, cy = 472, 290
+        cx, cy = (530 if mascot else 472), 290
         card_group = (f"<g transform='translate({cx} {cy}) scale(1.0) translate({-cx} {-cy})'>"
                       + svg_cardback(cx - 120, cy + 18, -17) + svg_cardback(cx + 120, cy + 18, 17) + svg_qcard(cx, cy)
                       + "</g>"
-                      + svg_sparkle(cx - 290, 130, 1.3) + svg_sparkle(cx + 310, 400, 1.0) + svg_sparkle(cx - 270, 470, 0.7, "#FFF6E4")
+                      + svg_sparkle(cx - 290, 130, 1.3) + svg_sparkle(cx + 310, 400, 1.0) + ("" if mascot else svg_sparkle(cx - 270, 470, 0.7, "#FFF6E4"))
                       + svg_sparkle(cx + 300, 210, 0.6, "#FFF6E4"))
         sticker_xy = (cx + 195, 100)
     else:
@@ -688,9 +689,14 @@ def g_cover_issue(d):
                       f"<img src='{src}' style='filter:blur({blur}px) saturate(1.1)'>"
                       f"<div class='mq jua'>?</div></div>")
     ticker = html_ticker(d["ticker"]) if d.get("ticker") else ""
+    mascot_html = ""
+    if mascot:
+        msrc = (Path(__file__).resolve().parent / "cast" / f"jurini_{mascot}.png").as_uri()
+        mascot_html = (f"<img src='{msrc}' style='position:absolute;left:{d.get('mascot_x', 50)}px;bottom:150px;"
+                       f"height:{d.get('mascot_h', 330)}px;transform:rotate(-6deg);filter:drop-shadow(0 8px 0 #060E24)'>")
     nt_b = ";bottom:70px" if ticker else ""
     speaker_tag = "" if solo or not d.get("speaker") else f"<div class='nametag' style='left:60px{nt_b}'>{d['speaker']}</div>"
-    target_tag_pos = ("left:456px;transform:translateX(-50%)" if solo else f"left:{d.get('target_tag_x', 536)}px")
+    target_tag_pos = (f"left:{(530 if mascot else 472) - 16}px;transform:translateX(-50%)" if solo else f"left:{d.get('target_tag_x', 536)}px")
     bottom = ticker or f"<div class='cover-q jua'>{d.get('question_html', '정답은 안에서 👉')}</div>"
     return (f"""
 <div class='tag jua' style='margin-top:44px'>{d.get('pill', '오늘의 이슈')}</div>
@@ -704,6 +710,7 @@ def g_cover_issue(d):
   {speaker_tag}
   <div class='nametag' style='{target_tag_pos};background:#FFD24A;color:#0E1A3A{nt_b}'>{d['target']}</div>
 </div>
+{mascot_html}
 {bottom}""", d.get("source", ""), False)
 
 
