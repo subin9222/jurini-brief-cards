@@ -5,7 +5,9 @@ content.json 구조:
   - 평일: tools/sample_content.json
   - 토요일(미국 주간 결산): tools/sample_saturday.json
   - 일요일(미국 경제 공부): tools/sample_sunday.json
-  주말용은 "cards" 배열에 카드 종류(type)를 순서대로 적는 방식이다.
+  평일(2026-11-23 개편 이후)과 주말 모두 "cards" 배열에 카드 종류(type)를 순서대로 적는다.
+  type: cover, market, flows, bars, issue, rows, indicators, list, stocks, term, preview
+  옛 평일 형식(domestic/flows/us/... 키)도 계속 렌더링된다.
 문자열 필드 중 *_html 은 <br>, <em>(노란 강조), <b> 를 쓸 수 있다.
 """
 import json
@@ -69,6 +71,23 @@ h1 em, h2 em { font-style:normal; color:var(--yellow); }
   border-radius:24px; padding:20px 30px 16px; font-size:36px; line-height:1.3; }
 .cta { position:absolute; left:84px; right:84px; bottom:124px; display:flex; align-items:center; gap:22px; }
 .cta img { width:96px; height:96px; border-radius:50%; border:4px solid var(--cream); flex:none; }
+.bul { list-style:none; margin-top:26px; }
+.bul li { position:relative; padding-left:30px; font-size:28px; line-height:1.45; color:#DCE2F2; margin-top:10px; letter-spacing:-0.8px; }
+.bul li::before { content:''; position:absolute; left:4px; top:15px; width:12px; height:12px; background:var(--yellow); border-radius:3px; }
+.bul b { color:var(--yellow); font-weight:700; }
+.tagrow { display:flex; align-items:center; gap:16px; margin-top:50px; }
+.cat { font-size:26px; color:var(--yellow); border:2px solid var(--yellow); border-radius:10px; padding:4px 14px 2px; }
+.chart-cap { font-size:24px; color:#6B7390; margin-bottom:6px; letter-spacing:-0.5px; }
+.idx { display:flex; gap:18px; }
+.idx > div { flex:1; background:#fff; border-radius:20px; padding:16px 22px 14px; border:2px solid #EADFC8; }
+.idx .nm { font-size:30px; }
+.idx .vl { font-family:'Noto Sans CJK KR',sans-serif; font-weight:900; font-size:46px; letter-spacing:-1.5px; line-height:1.15; }
+.idx .ch { font-family:'Noto Sans CJK KR',sans-serif; font-weight:800; font-size:28px; }
+.stats { display:flex; gap:16px; }
+.stats > div { flex:1; background:#fff; border-radius:20px; padding:18px 18px 16px; border:2px solid #EADFC8; text-align:center; }
+.stats .lb { font-size:26px; color:#4A5470; letter-spacing:-0.6px; }
+.stats .vl { font-family:'Noto Sans CJK KR',sans-serif; font-weight:900; font-size:46px; letter-spacing:-1.5px; line-height:1.2; margin-top:4px; }
+.stats .sb { font-size:23px; color:#6B7390; margin-top:4px; letter-spacing:-0.5px; line-height:1.35; }
 .foot { position:absolute; left:84px; right:84px; bottom:58px; display:flex; justify-content:space-between;
   font-size:23px; color:var(--mute); border-top:2px solid rgba(255,255,255,.12); padding-top:22px; }
 """
@@ -214,11 +233,113 @@ def _tag(t):
     return f"<div class='tag jua'>{t}</div>"
 
 
-def _memo(d, size=None):
-    if not d.get("memo_html"):
+def _bullets(d):
+    """mr.market식 3줄 요약: d['bullets'] = ["...", "...", "..."] (각 1~2줄, <b> 강조 가능)"""
+    if not d.get("bullets"):
         return ""
+    return "<ul class='bul'>" + "".join(f"<li>{b}</li>" for b in d["bullets"]) + "</ul>"
+
+
+def _memo(d, size=None):
+    out = ""
+    if d.get("memo_html"):
+        st = f" style='font-size:{size}px'" if size else ""
+        out = f"<p class='memo'{st}>{d['memo_html']}</p>"
+    return out + _bullets(d)
+
+
+def _title(d, size=None):
+    cat = f"<span class='cat jua'>{d['category']}</span>" if d.get("category") else ""
     st = f" style='font-size:{size}px'" if size else ""
-    return f"<p class='memo'{st}>{d['memo_html']}</p>"
+    return (f"<div class='tagrow'><div class='tag jua' style='margin-top:0'>{d['tag']}</div>{cat}</div>"
+            f"<h2 class='jua'{st}>{d['title_html']}</h2>")
+
+
+# ---- SVG 차트 -------------------------------------------------------------
+UP, DOWN, NAVY, GRID, MUTE = "#E5483A", "#2E6BE0", "#0E1A3A", "#E7DCC6", "#6B7390"
+SVG_FONT = "font-family=\"'Noto Sans CJK KR',sans-serif\""
+
+
+def _fmt(v, dec):
+    return f"{v:,.{dec}f}"
+
+
+def svg_line(spec, w=820, h=240):
+    """꺾은선: {"labels":[...], "values":[...], "decimals":2, "caption":"..."}
+    처음·마지막·최고·최저 값에 숫자를 단다. 마지막 점이 처음보다 높으면 빨강, 낮으면 파랑."""
+    labels, vals = spec["labels"], [float(v) for v in spec["values"]]
+    dec = spec.get("decimals", 2)
+    pl, pr, pt, pb = 20, 150, 40, 40
+    lo, hi = min(vals), max(vals)
+    pad = (hi - lo) * 0.12 or 1
+    lo, hi = lo - pad, hi + pad
+    n = len(vals)
+    xs = [pl + (w - pl - pr) * i / (n - 1) for i in range(n)]
+    ys = [pt + (h - pt - pb) * (1 - (v - lo) / (hi - lo)) for v in vals]
+    color = UP if vals[-1] >= vals[0] else DOWN
+    out = [f"<svg width='{w}' height='{h}' viewBox='0 0 {w} {h}' xmlns='http://www.w3.org/2000/svg'>"]
+    for k in range(4):
+        y = pt + (h - pt - pb) * k / 3
+        out.append(f"<line x1='{pl}' x2='{w-pr}' y1='{y:.1f}' y2='{y:.1f}' stroke='{GRID}' stroke-width='2'/>")
+    area = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, ys))
+    out.append(f"<polygon points='{xs[0]:.1f},{h-pb} {area} {xs[-1]:.1f},{h-pb}' fill='{color}' fill-opacity='0.10'/>")
+    out.append(f"<polyline points='{area}' fill='none' stroke='{color}' stroke-width='5' stroke-linejoin='round' stroke-linecap='round'/>")
+    imax, imin = vals.index(max(vals)), vals.index(min(vals))
+    mark = {0, n - 1, imax, imin}
+    for i, (x, y) in enumerate(zip(xs, ys)):
+        r = 9 if i == n - 1 else 5
+        out.append(f"<circle cx='{x:.1f}' cy='{y:.1f}' r='{r}' fill='{color if i == n-1 else '#fff'}' stroke='{color}' stroke-width='3'/>")
+        if i == n - 1:
+            out.append(f"<text x='{x+18:.1f}' y='{y+9:.1f}' text-anchor='start' {SVG_FONT} font-size='27' font-weight='900' fill='{color}'>{_fmt(vals[i], dec)}</text>")
+        elif i in mark:
+            anchor = "start" if i == 0 else "middle"
+            above = i == imax or (i != imin and y > pt + 40)
+            ty = y - 16 if above else y + 34
+            out.append(f"<text x='{x:.1f}' y='{ty:.1f}' text-anchor='{anchor}' {SVG_FONT} font-size='22' font-weight='700' fill='{NAVY}'>{_fmt(vals[i], dec)}</text>")
+    step = max(1, (n + 5) // 6)
+    for i in range(n):
+        if i % step == 0 or i == n - 1:
+            if i != n - 1 and n - 1 - i < step:
+                continue
+            anchor = "start" if i == 0 else ("end" if i == n - 1 else "middle")
+            out.append(f"<text x='{xs[i]:.1f}' y='{h-10}' text-anchor='{anchor}' {SVG_FONT} font-size='21' fill='{MUTE}'>{labels[i]}</text>")
+    out.append("</svg>")
+    return "".join(out)
+
+
+def svg_diverge(spec, w=820):
+    """등락 막대: {"items":[{"label":"나스닥","value":-2.25,"text":"−2.25%"}], "caption":"..."}
+    0을 가운데 두고 상승은 오른쪽 빨강, 하락은 왼쪽 파랑."""
+    items = spec["items"]
+    row, lab_w = 54, 250
+    h = row * len(items) + 8
+    zero = lab_w + (w - lab_w) / 2
+    half = (w - lab_w) / 2 - 125
+    m = max(abs(float(it["value"])) for it in items) or 1
+    out = [f"<svg width='{w}' height='{h}' viewBox='0 0 {w} {h}' xmlns='http://www.w3.org/2000/svg'>",
+           f"<line x1='{zero:.1f}' x2='{zero:.1f}' y1='0' y2='{h}' stroke='#C9BDA4' stroke-width='2' stroke-dasharray='4 5'/>"]
+    for i, it in enumerate(items):
+        v = float(it["value"])
+        y = i * row + 8
+        bw = max(6, abs(v) / m * half)
+        c = UP if v > 0 else DOWN
+        x = zero if v > 0 else zero - bw
+        out.append(f"<text x='0' y='{y+30}' {SVG_FONT} font-size='28' font-weight='700' fill='{NAVY}'>{it['label']}</text>")
+        out.append(f"<rect x='{x:.1f}' y='{y+6}' width='{bw:.1f}' height='32' rx='8' fill='{c}'/>")
+        tx, anc = (zero + bw + 10, "start") if v > 0 else (zero - bw - 10, "end")
+        out.append(f"<text x='{tx:.1f}' y='{y+32}' text-anchor='{anc}' {SVG_FONT} font-size='26' font-weight='900' fill='{c}'>{it['text']}</text>")
+    out.append("</svg>")
+    return "".join(out)
+
+
+def _chart(spec):
+    cap = f"<div class='chart-cap'>{spec['caption']}</div>" if spec.get("caption") else ""
+    body = svg_line(spec) if spec["type"] == "line" else svg_diverge(spec)
+    return cap + body
+
+
+def _dir_cls(d):
+    return {"up": "up", "down": "down"}.get(d, "flat")
 
 
 def g_cover(d):
@@ -320,9 +441,59 @@ def g_preview(d):
   <span style='font-size:25px;color:var(--mute)'>{note} · @jurini.brief</span></div></div>""", d.get("source", ""), False)
 
 
+def g_market(d):
+    """국내 증시: 지수 박스 2개 + 최근 흐름 꺾은선 + 3줄 요약"""
+    boxes = "".join(
+        f"<div><div class='nm jua'>{x['name']}</div><div class='vl'>{x['close']}</div>"
+        f"<div class='ch {_dir_cls(x['dir'])}'>{ARROW.get(x['dir'], '')} {x['chg']} ({x['pct']})</div></div>"
+        for x in d["indices"])
+    return (f"""{_title(d, 66)}
+<div class='card' style='margin-top:26px;padding:24px 30px 18px'>
+  <div class='idx'>{boxes}</div>
+  <div style='margin-top:18px'>{_chart(d['chart'])}</div>
+</div>
+{_bullets(d)}""", d.get("source", ""))
+
+
+def g_flows(d):
+    """투자자별 매매: 막대 + 3줄 요약"""
+    bars = ""
+    for r in d["rows"]:
+        color = "var(--down)" if r["dir"] == "down" else "var(--up)"
+        bars += f"""
+<div style='margin-top:24px'>
+  <div class='row'><span class='label jua' style='font-size:36px'>{r['name']}</span><span class='chg jua {r['dir']}' style='font-size:36px'>{r['amount']} {r['verb']}</span></div>
+  <div style='height:30px;background:#EADFC8;border-radius:999px;margin-top:10px;overflow:hidden'>
+    <div style='height:100%;width:{max(r['width'], 3)}%;background:{color};border-radius:999px'></div></div>
+</div>"""
+    extra = f"<div class='chart-cap' style='margin-top:18px'>{d['caption']}</div>" if d.get("caption") else ""
+    return (f"""{_title(d, 66)}
+<div class='card' style='margin-top:26px;padding:6px 40px 30px'>{bars}{extra}</div>
+{_bullets(d)}""", d.get("source", ""))
+
+
+def g_bars(d):
+    """등락 막대 그래프(미국장 등) + 3줄 요약"""
+    return (f"""{_title(d, 66)}
+<div class='card' style='margin-top:26px;padding:24px 30px 20px'>{_chart(d['chart'])}</div>
+{_bullets(d)}""", d.get("source", ""))
+
+
+def g_issue(d):
+    """오늘의 이슈: 수치 박스 2~3개(+선택 꺾은선/막대) + 3줄 요약"""
+    stats = "".join(
+        f"<div><div class='lb'>{s['label']}</div><div class='vl {_dir_cls(s.get('dir'))}'>{s['value']}</div>"
+        f"<div class='sb'>{s.get('sub', '')}</div></div>" for s in d["stats"])
+    chart = f"<div style='margin-top:18px'>{_chart(d['chart'])}</div>" if d.get("chart") else ""
+    return (f"""{_title(d, 64)}
+<div class='card' style='margin-top:26px;padding:24px 26px 22px'><div class='stats'>{stats}</div>{chart}</div>
+{_bullets(d)}""", d.get("source", ""))
+
+
 NUM_STYLE_BIG = "style=\"font-family:'Noto Sans CJK KR',sans-serif;font-weight:900;font-size:44px;letter-spacing:-1.5px\""
 GENERIC = {"cover": g_cover, "rows": g_rows, "indicators": g_indicators, "list": g_list,
-           "stocks": g_stocks, "term": g_term, "preview": g_preview}
+           "stocks": g_stocks, "term": g_term, "preview": g_preview,
+           "market": g_market, "flows": g_flows, "bars": g_bars, "issue": g_issue}
 
 
 def build_generic(c):
