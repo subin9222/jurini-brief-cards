@@ -49,5 +49,11 @@
    "용어": "증안펀드(모래주머니 비유)",
    "made": "2026-11-23 Higgsfield gpt_image_2_6"
   }
+ },
+ "_music": {
+  "설명": "릴스 배경음악(우리 전용, Higgsfield elevenlabs_music_v2_5로 생성, 25초, 보컬 없음). tools/music/<키>.mp3, 기본곡은 tools/music/default.txt",
+  "lofi": "밝은 로파이 92BPM (2026-11-23)",
+  "marimba": "마림바·피치카토 110BPM (2026-11-23)",
+  "ticker": "미니멀 전자음·시세판 틱 100BPM (2026-11-23)"
  }
 }

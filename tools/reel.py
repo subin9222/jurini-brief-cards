@@ -1,6 +1,8 @@
 """카드 이미지(card_01.jpg …)를 세로 릴스 영상(1080x1920, 30fps, 무음)으로 만든다.
 
-사용법:  python3 tools/reel.py <카드 폴더> [출력 mp4]
+사용법:  python3 tools/reel.py <카드 폴더> [출력 mp4] [--music 파일|키]
+  - --music: 배경음악. tools/music/<키>.mp3 의 키(예: jingle1) 또는 파일 경로.
+             생략하면 tools/music/default.txt 에 적힌 키를 쓰고, 그것도 없으면 무음.
   - 카드 폴더: render.py가 만든 card_01.jpg … 가 있는 폴더
   - 출력 기본값: <카드 폴더>/reel.mp4
 
@@ -81,8 +83,19 @@ def date_label(folder: Path):
 
 
 def main():
-    folder = Path(sys.argv[1]).resolve()
-    out = Path(sys.argv[2]).resolve() if len(sys.argv) > 2 else folder / "reel.mp4"
+    args = sys.argv[1:]
+    music = None
+    if "--music" in args:
+        k = args.index("--music"); music = args[k + 1]; del args[k:k + 2]
+    folder = Path(args[0]).resolve()
+    out = Path(args[1]).resolve() if len(args) > 1 else folder / "reel.mp4"
+    mdir = TOOLS / "music"
+    if music is None and (mdir / "default.txt").exists():
+        music = (mdir / "default.txt").read_text().strip() or None
+    if music and not Path(music).exists():
+        music = str(mdir / f"{music}.mp3")
+    if music and not Path(music).exists():
+        raise SystemExit(f"음악 파일이 없어요: {music}")
     cards = sorted(folder.glob("card_*.jpg"))
     if not cards:
         raise SystemExit("카드 이미지(card_*.jpg)가 없어요")
@@ -140,9 +153,17 @@ def main():
     joined = tmp / "joined.mp4"
     run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(lst), "-c", "copy", str(joined)])
     work = out.with_suffix(".tmp.mp4")
-    run(["ffmpeg", "-y", "-i", str(joined), "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo",
-         "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-shortest",
-         "-movflags", "+faststart", str(work)])
+    if music:   # 음악을 영상 길이에 맞춰 반복·자르고, 끝 1.5초 페이드아웃
+        dur = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
+                                    str(joined)], capture_output=True, text=True).stdout.strip())
+        af = f"volume=0.85,afade=t=in:st=0:d=0.3,afade=t=out:st={dur - 1.5:.2f}:d=1.5"
+        run(["ffmpeg", "-y", "-i", str(joined), "-stream_loop", "-1", "-i", music,
+             "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-af", af, "-c:a", "aac", "-b:a", "160k",
+             "-t", f"{dur:.2f}", "-movflags", "+faststart", str(work)])
+    else:
+        run(["ffmpeg", "-y", "-i", str(joined), "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo",
+             "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-shortest",
+             "-movflags", "+faststart", str(work)])
     work.rename(out)
     print(f"reel -> {out}")
 

@@ -172,7 +172,7 @@
 - 컨펌 메시지에 오늘 고른 해시태그 5개와 고른 이유를 한 줄로 적는다.
 
 ## 5-1. 릴스 영상 (2026-11-23 추가 — 처음 보는 사람에게 닿는 통로)
-카드 렌더 후 `python3 tools/reel.py cards/YYYY-MM-DD` → `cards/YYYY-MM-DD/reel.mp4`(1080x1920, 30fps, 약 24초, 무음 트랙 포함).
+카드 렌더 후 `python3 tools/reel.py cards/YYYY-MM-DD` → `cards/YYYY-MM-DD/reel.mp4`(1080x1920, 30fps, 약 24초, 배경음악은 tools/music/default.txt의 곡).
 - 표지 3.2초(살짝 확대 등장) → 장마다 3초(옆으로 넘김) → 마지막 3초 '팔로우' 화면(신난 주린이).
 - 카드는 90%로 줄여 인스타 버튼·캡션에 가리지 않는 위치에 둔다. 렌더 후 ffmpeg로 0.1초·7초·마지막 장면을 뽑아 눈으로 확인.
 - 릴스 캡션(`reel_caption.txt`): 캡션 첫 2줄(질문형 제목 + 한 줄 요약) + "👉 카드 7장 정리는 프로필 게시물에서 저장해 두세요" + 같은 해시태그 5개. 길게 쓰지 않는다.
@@ -200,7 +200,7 @@ Metricool `createScheduledPost`:
 - `instagramData: {"type":"REEL", "showReelOnFeed": true, "isAiGenerated": true}`, media: reel.mp4 raw 주소 1개, text: reel_caption.txt
 - `videoCoverMilliseconds: 1500`(표지가 다 보이는 순간을 썸네일로)
 - 날짜: 캐러셀보다 **2시간 뒤**(같은 시각에 두 개를 올리면 서로 노출을 나눠 먹는다). 운영자가 "같이 올려"라고 하면 그에 따른다.
-- 음악은 넣지 않는다(무음). 운영자가 원하면 인스타 앱에서 직접 음악을 붙일 수 있다고 안내한다.
+- 음악: reel.py가 `tools/music/default.txt`에 적힌 우리 전용 곡(Higgsfield로 직접 만든 곡, 저작권 걱정 없음)을 자동으로 깐다. 외부 음원·인기곡은 쓰지 않는다.
 게시 예약 결과(plannerUrl)를 운영자에게 알린다. 오류가 나면 내용을 그대로 전달하고 재시도는 한 번만.
 
 참고: Metricool 무료 플랜은 예약 게시 20건 한도가 있다. 한도 오류가 나면 운영자에게 플랜 업그레이드 필요를 알린다.
