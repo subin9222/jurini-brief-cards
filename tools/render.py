@@ -112,6 +112,20 @@ h1 em, h2 em { font-style:normal; color:var(--yellow); }
   -webkit-mask-image:radial-gradient(ellipse 50% 52% at 50% 46%, #000 55%, transparent 100%); }
 .mystery .mq { position:absolute; left:0; right:0; top:120px; text-align:center; font-size:260px; line-height:1; color:var(--yellow);
   text-shadow:0 10px 0 #060E24, 0 0 40px rgba(14,26,58,.85); }
+.rv-hero { position:relative; margin-top:30px; background:var(--cream); color:var(--navy); border-radius:34px; padding:34px 44px 30px;
+  border:8px solid var(--yellow); box-shadow:0 12px 0 #060E24; transform:rotate(-1.5deg); min-height:300px; }
+.rv-hero.has-img { padding-left:330px; }
+.rv-img { position:absolute; left:20px; bottom:0; height:340px; }
+.rv-label { display:inline-block; background:var(--up); color:#fff; font-size:30px; padding:6px 22px 2px; border-radius:12px; }
+.rv-ans { font-size:118px; line-height:1.05; margin-top:10px; letter-spacing:-3px; }
+.rv-sub { font-size:28px; color:#4A5470; margin-top:10px; line-height:1.4; letter-spacing:-0.8px; }
+.rv-row { display:flex; gap:18px; margin-top:34px; }
+.rv-mini { flex:1; position:relative; background:#16264F; border:3px solid rgba(255,210,74,.6); border-radius:24px; padding:30px 18px 26px; text-align:center; }
+.rv-no { position:absolute; left:-10px; top:-14px; width:48px; height:48px; border-radius:50%; background:var(--yellow); color:var(--navy);
+  font-size:30px; line-height:50px; text-align:center; box-shadow:0 4px 0 #B8901F; }
+.rv-emo { font-size:64px; line-height:1.1; }
+.rv-t { font-size:31px; margin-top:8px; line-height:1.2; }
+.rv-s { font-size:23px; color:#CBD3EA; margin-top:6px; line-height:1.35; letter-spacing:-0.6px; }
 .cover-q { position:absolute; left:84px; right:84px; bottom:130px; text-align:center; background:var(--yellow); color:var(--navy);
   font-size:44px; padding:18px 20px 14px; border-radius:24px; box-shadow:0 8px 0 #B8901F; }
 .foot { position:absolute; left:84px; right:84px; bottom:58px; display:flex; justify-content:space-between;
@@ -492,12 +506,68 @@ def svg_person(x, y, s, body, face_q=False, point=False, tie=None):
     return "".join(parts)
 
 
+def svg_taegukgi(x, y, H):
+    """대한민국국기법 시행령 작도법대로 그린 태극기. (x, y)=깃면 왼쪽 위, H=깃면 너비(세로). 가로는 1.5H.
+    태극: 지름 H/2, 왼쪽 위→오른쪽 아래 대각선 위 지름을 2등분해 왼쪽 반원은 대각선 아래, 오른쪽 반원은 위로. 윗부분 빨강.
+    4괘: 건(왼쪽 위)·곤(오른쪽 아래)·감(오른쪽 위)·이(왼쪽 아래), 태극 원에서 대각선 따라 D/4 띄움,
+    괘 가로 D/2·세로 D/3, 효 굵기 = 괘 세로의 1/4, 효 사이·끊긴 간격 = 괘 세로의 1/8."""
+    import math
+    W = 1.5 * H
+    cx, cy = x + W / 2, y + H / 2
+    D = H / 2
+    r = D / 2
+    th = math.degrees(math.atan2(H, W))          # 대각선 각도
+    RED, BLUE, BLACK = "#CD2E3A", "#0047A0", "#000000"
+    out = [f"<rect x='{x:.1f}' y='{y:.1f}' width='{W:.1f}' height='{H:.1f}' fill='#FFFFFF'/>"]
+    out.append(f"<g transform='translate({cx:.2f} {cy:.2f}) rotate({th:.4f})'>"
+               f"<circle cx='0' cy='0' r='{r:.2f}' fill='{BLUE}'/>"
+               f"<path d='M{-r:.2f},0 A{r/2:.2f},{r/2:.2f} 0 0 0 0,0 A{r/2:.2f},{r/2:.2f} 0 0 1 {r:.2f},0 "
+               f"A{r:.2f},{r:.2f} 0 0 0 {-r:.2f},0 Z' fill='{RED}'/></g>")
+    gl, gh = D / 2, D / 3                          # 괘 가로·세로
+    bar, gap = gh / 4, gh / 8
+    dist = r + D / 4 + gh / 2                       # 태극 중심 ~ 괘 중심
+    # (대각선 방향 단위벡터, 효 구성: 위(바깥)→아래(안쪽) 순서, True=이어짐)
+    ux, uy = W / math.hypot(W, H), H / math.hypot(W, H)
+    specs = {"geon": ((-ux, -uy), [1, 1, 1]), "gon": ((ux, uy), [0, 0, 0]),
+             "gam": ((ux, -uy), [0, 1, 0]), "ri": ((-ux, uy), [1, 0, 1])}
+    for name, ((dx, dy), lines) in specs.items():
+        gx, gy = cx + dx * dist, cy + dy * dist
+        ang = math.degrees(math.atan2(dy, dx)) + 90  # 효는 대각선과 직각
+        g = [f"<g transform='translate({gx:.2f} {gy:.2f}) rotate({ang:.4f})'>"]
+        for k, solid in enumerate(lines):
+            yy = -gh / 2 + k * (bar + gap)
+            if solid:
+                g.append(f"<rect x='{-gl/2:.2f}' y='{yy:.2f}' width='{gl:.2f}' height='{bar:.2f}' fill='{BLACK}'/>")
+            else:
+                half = (gl - gap) / 2
+                g.append(f"<rect x='{-gl/2:.2f}' y='{yy:.2f}' width='{half:.2f}' height='{bar:.2f}' fill='{BLACK}'/>"
+                         f"<rect x='{gap/2:.2f}' y='{yy:.2f}' width='{half:.2f}' height='{bar:.2f}' fill='{BLACK}'/>")
+        g.append("</g>")
+        out.append("".join(g))
+    return "".join(out)
+
+
+def svg_flagpole():
+    """정부 발표용: 깃대에 단 태극기(작도법 그대로, 평평한 깃면)."""
+    H = 230
+    return ("<rect x='40' y='60' width='14' height='600' rx='7' fill='#C9B98F'/>"
+            "<circle cx='47' cy='54' r='16' fill='#FFD24A'/>"
+            f"<g filter='drop-shadow(0 10px 0 #060E24)'>{svg_taegukgi(54, 80, H)}</g>"
+            f"<rect x='54' y='80' width='{1.5*H:.0f}' height='{H}' fill='none' stroke='#060E24' stroke-width='3'/>")
+
+
+def svg_sticker(cx, cy, text):
+    """빨간 동그라미 스티커(예: '18년 만')."""
+    return (f"<g transform='rotate(-12 {cx} {cy})'><circle cx='{cx}' cy='{cy}' r='78' fill='#E5483A' stroke='#FFF6E4' stroke-width='8'/>"
+            f"<text x='{cx}' y='{cy+12}' text-anchor='middle' font-family=\"'Jua'\" font-size='38' fill='#FFF6E4'>{text}</text></g>")
+
+
 def svg_qcard(cx, cy):
     """정답이 '사람'이 아니라 '정책·물건'일 때: 물음표가 적힌 카드 한 장."""
-    return (f"<g transform='rotate(8 {cx} {cy})'>"
-            f"<rect x='{cx-150}' y='{cy-205}' width='300' height='410' rx='30' fill='#FFF6E4' stroke='#FFD24A' stroke-width='12'/>"
-            f"<rect x='{cx-118}' y='{cy-173}' width='236' height='346' rx='18' fill='none' stroke='#E7DCC6' stroke-width='4' stroke-dasharray='10 8'/>"
-            f"<text x='{cx}' y='{cy+78}' text-anchor='middle' font-family=\"'Jua'\" font-size='240' fill='#0E1A3A'>?</text></g>")
+    return (f"<g transform='rotate(8 {cx} {cy})' filter='drop-shadow(0 12px 0 #060E24)'>"
+            f"<rect x='{cx-165}' y='{cy-225}' width='330' height='450' rx='32' fill='#FFF6E4' stroke='#FFD24A' stroke-width='14'/>"
+            f"<rect x='{cx-130}' y='{cy-190}' width='260' height='380' rx='18' fill='none' stroke='#E7DCC6' stroke-width='4' stroke-dasharray='10 8'/>"
+            f"<text x='{cx}' y='{cy+88}' text-anchor='middle' font-family=\"'Jua'\" font-size='270' fill='#E5483A'>?</text></g>")
 
 
 def g_cover_issue(d):
@@ -508,9 +578,11 @@ def g_cover_issue(d):
              f"<defs><radialGradient id='spot' cx='50%' cy='40%' r='60%'><stop offset='0%' stop-color='#FFD24A' stop-opacity='.38'/>"
              f"<stop offset='100%' stop-color='#FFD24A' stop-opacity='0'/></radialGradient></defs>"
              f"<ellipse cx='690' cy='330' rx='200' ry='290' fill='url(#spot)'/>"
-             + ("" if d.get("speaker_img") else svg_person(205, 250, 0.92, "#E9E1CF", point=True, tie="#E5483A"))
+             + (svg_flagpole() if d.get("speaker_kind") == "flag" else
+                ("" if d.get("speaker_img") else svg_person(205, 250, 0.92, "#E9E1CF", point=True, tie="#E5483A")))
              + ("" if d.get("target_img") else
                 (svg_qcard(690, 300) if d.get("target_kind") == "card" else svg_person(690, 250, 0.92, "#25365F", face_q=True)))
+             + (svg_sticker(835, 95, d["sticker"]) if d.get("sticker") else "")
              + "</svg>")
     bub = f"<div class='qbub'>{d['quote_html']}</div>" if d.get("quote_html") else ""
     who = f"<div class='quote-by'>{d['quote_by']}</div>" if d.get("quote_by") else ""
@@ -540,6 +612,28 @@ def g_cover_issue(d):
   <div class='nametag' style='left:556px;background:#FFD24A;color:#0E1A3A'>{d['target']}</div>
 </div>
 <div class='cover-q jua'>{d.get('question_html', '정답은 안에서 👉')}</div>""", d.get("source", ""), False)
+
+
+def g_reveal(d):
+    """정답 공개 카드: 큰 정답 카드(그림 선택) + 핵심 3장(①②③) + 3줄 요약.
+    d: tag, category, answer(정답 단어), answer_sub, answer_img(선택, 캐리커처), cards:[{emoji,title,sub}], bullets, source"""
+    img = ""
+    if d.get("answer_img"):
+        src = (CONTENT_DIR / d["answer_img"]).resolve().as_uri()
+        img = f"<img class='rv-img' src='{src}'>"
+    minis = "".join(
+        f"<div class='rv-mini'><div class='rv-no jua'>{i+1}</div><div class='rv-emo'>{c['emoji']}</div>"
+        f"<div class='rv-t jua'>{c['title']}</div><div class='rv-s'>{c.get('sub', '')}</div></div>"
+        for i, c in enumerate(d["cards"]))
+    return (f"""<div class='tagrow'><div class='tag jua' style='margin-top:0'>{d['tag']}</div>{f"<span class='cat jua'>{d['category']}</span>" if d.get('category') else ''}</div>
+<div class='rv-hero{' has-img' if img else ''}'>
+  {img}
+  <div class='rv-label jua'>정답</div>
+  <div class='rv-ans jua'>{d['answer']}</div>
+  <div class='rv-sub'>{d.get('answer_sub', '')}</div>
+</div>
+<div class='rv-row'>{minis}</div>
+{_bullets(d)}""", d.get("source", ""))
 
 
 def g_timeline(d):
@@ -615,7 +709,7 @@ NUM_STYLE_BIG = "style=\"font-family:'Noto Sans CJK KR',sans-serif;font-weight:9
 GENERIC = {"cover": g_cover, "rows": g_rows, "indicators": g_indicators, "list": g_list,
            "stocks": g_stocks, "term": g_term, "preview": g_preview,
            "market": g_market, "flows": g_flows, "bars": g_bars, "issue": g_issue,
-           "cover_issue": g_cover_issue, "timeline": g_timeline}
+           "cover_issue": g_cover_issue, "timeline": g_timeline, "reveal": g_reveal}
 
 
 def build_generic(c):
