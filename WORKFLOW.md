@@ -171,13 +171,20 @@
 - **첫 줄에 핵심 단어를 자연스럽게** 넣는다(예: "증안펀드 18년 만에 꺼낸 이유"). 해시태그보다 캡션 문장 속 단어가 검색·분류에 더 쓰인다는 업계 분석이 많다(인스타그램 공식 수치로 확인된 것은 아님).
 - 컨펌 메시지에 오늘 고른 해시태그 5개와 고른 이유를 한 줄로 적는다.
 
+## 5-1. 릴스 영상 (2026-11-23 추가 — 처음 보는 사람에게 닿는 통로)
+카드 렌더 후 `python3 tools/reel.py cards/YYYY-MM-DD` → `cards/YYYY-MM-DD/reel.mp4`(1080x1920, 30fps, 약 24초, 무음 트랙 포함).
+- 표지 3.2초(살짝 확대 등장) → 장마다 3초(옆으로 넘김) → 마지막 3초 '팔로우' 화면(신난 주린이).
+- 카드는 90%로 줄여 인스타 버튼·캡션에 가리지 않는 위치에 둔다. 렌더 후 ffmpeg로 0.1초·7초·마지막 장면을 뽑아 눈으로 확인.
+- 릴스 캡션(`reel_caption.txt`): 캡션 첫 2줄(질문형 제목 + 한 줄 요약) + "👉 카드 7장 정리는 프로필 게시물에서 저장해 두세요" + 같은 해시태그 5개. 길게 쓰지 않는다.
+
 ## 6. 저장소 업로드
-`cards/YYYY-MM-DD/`에 content.json, caption.txt, card_01~07.jpg를 커밋하고 `main`에 push.
+`cards/YYYY-MM-DD/`에 content.json, caption.txt, reel_caption.txt, card_01~07.jpg, reel.mp4를 커밋하고 `main`에 push.
 공개 주소: `https://raw.githubusercontent.com/subin9222/jurini-brief-cards/main/cards/YYYY-MM-DD/card_0N.jpg`
 push 후 card_01 주소가 HTTP 200 / image/jpeg로 열리는지 확인.
+릴스 주소: `https://raw.githubusercontent.com/subin9222/jurini-brief-cards/main/cards/YYYY-MM-DD/reel.mp4` (HTTP 200 확인).
 
 ## 7. 컨펌 요청
-운영자에게 카드 7장(파일)과 캡션 전문을 보내고, **오늘의 이슈 후보 5개(순위 · 한 줄 요약 · 점수 합계, 표지로 고른 것 표시)**와 확인이 필요한 점(출처 간 수치 차이 등)을 짧게 적은 뒤 "수정할 부분을 말씀해 주시거나 '올려줘'라고 하시면 게시할게요"로 묻는다.
+운영자에게 카드 7장(파일)과 릴스 영상(reel.mp4), 캡션 전문·릴스 캡션을 보내고, **오늘의 이슈 후보 5개(순위 · 한 줄 요약 · 점수 합계, 표지로 고른 것 표시)**와 확인이 필요한 점(출처 간 수치 차이 등)을 짧게 적은 뒤 "수정할 부분을 말씀해 주시거나 '올려줘'라고 하시면 게시할게요"로 묻는다.
 - 수정 요청 → content.json/caption 수정, 다시 렌더·push·확인 요청.
 - 운영자가 "2번 이슈로 바꿔줘"처럼 말하면 그 이슈로 표지·01·05(용어)를 다시 만든다.
 - 답이 없으면 아무것도 게시하지 않는다.
@@ -189,6 +196,11 @@ Metricool `createScheduledPost`:
 - `draft: false`, `autoPublish: true`
 - AI로 그린 그림(캐리커처·주린이·비유 그림)이 하나라도 들어간 날은 `instagramData`에 `"isAiGenerated": true`를 넣는다(주린이가 매일 들어가므로 사실상 매일).
 - 날짜: 지금(한국 시간)으로부터 5분 뒤, `publicationDate.timezone: "Asia/Seoul"`
+**릴스도 함께 게시**(같은 승인으로, 캐러셀 게시 직후 별도 호출):
+- `instagramData: {"type":"REEL", "showReelOnFeed": true, "isAiGenerated": true}`, media: reel.mp4 raw 주소 1개, text: reel_caption.txt
+- `videoCoverMilliseconds: 1500`(표지가 다 보이는 순간을 썸네일로)
+- 날짜: 캐러셀보다 **2시간 뒤**(같은 시각에 두 개를 올리면 서로 노출을 나눠 먹는다). 운영자가 "같이 올려"라고 하면 그에 따른다.
+- 음악은 넣지 않는다(무음). 운영자가 원하면 인스타 앱에서 직접 음악을 붙일 수 있다고 안내한다.
 게시 예약 결과(plannerUrl)를 운영자에게 알린다. 오류가 나면 내용을 그대로 전달하고 재시도는 한 번만.
 
 참고: Metricool 무료 플랜은 예약 게시 20건 한도가 있다. 한도 오류가 나면 운영자에게 플랜 업그레이드 필요를 알린다.
