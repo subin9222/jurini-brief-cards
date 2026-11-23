@@ -13,7 +13,8 @@
       "question_html": "트럼프의 선택, 열흘 사이 무슨 일이? 👉",
       "source": "머니투데이방송·전자신문·서울신문",
       "speaker_img": "cast/trump_point.png",
-      "speaker_h": 600
+      "speaker_h": 600,
+      "target_img": "cast/cook_stand.png"
     },
     {
       "type": "timeline",

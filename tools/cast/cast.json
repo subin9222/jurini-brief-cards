@@ -8,5 +8,14 @@
     "made": {
       "point": "2026-11-23 Higgsfield gpt_image_2_6"
     }
+  },
+  "cook": {
+    "name": "팀 쿡 애플 이사회 의장",
+    "poses": {
+      "stand": "cook_stand.png"
+    },
+    "made": {
+      "stand": "2026-11-23 Higgsfield gpt_image_2_6"
+    }
   }
 }
