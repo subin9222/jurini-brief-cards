@@ -582,7 +582,7 @@ def svg_burst(cx, cy, n=18, r=560, color="#FFD24A", op=0.30):
     import math
     out = (f"<defs><radialGradient id='burstfade'><stop offset='0' stop-color='#fff'/><stop offset='.55' stop-color='#fff' stop-opacity='.6'/>"
            f"<stop offset='1' stop-color='#fff' stop-opacity='0'/></radialGradient>"
-           f"<mask id='burstmask'><ellipse cx='{cx}' cy='{cy+40}' rx='{r*0.85:.0f}' ry='{r*0.5:.0f}' fill='url(#burstfade)'/></mask></defs>"
+           f"<mask id='burstmask'><ellipse cx='{cx}' cy='{cy+40}' rx='{min(r*0.85, 430):.0f}' ry='{r*0.5:.0f}' fill='url(#burstfade)'/></mask></defs>"
            f"<g opacity='{op}' mask='url(#burstmask)'>")
     for i in range(n):
         a0 = 2 * math.pi * i / n; a1 = a0 + math.pi / n * 0.55
@@ -639,19 +639,38 @@ def g_cover_issue(d):
     """이슈 표지: 질문형 제목 + '누가 누구를' 장면(실루엣) + 말풍선 인용.
     d: pill, title_html, speaker(이름표), quote_html(말풍선), target(물음표 인물 이름표), sub_html, question_html"""
     w, h = 912, 640
+    solo = d.get("speaker_kind") == "none"   # 말한 주체 없이 정답 카드만 가운데에 크게
+    if solo:
+        cx, cy = 472, 290
+        card_group = (f"<g transform='translate({cx} {cy}) scale(1.0) translate({-cx} {-cy})'>"
+                      + svg_cardback(cx - 120, cy + 18, -17) + svg_cardback(cx + 120, cy + 18, 17) + svg_qcard(cx, cy)
+                      + "</g>"
+                      + svg_sparkle(cx - 290, 130, 1.3) + svg_sparkle(cx + 310, 400, 1.0) + svg_sparkle(cx - 270, 470, 0.7, "#FFF6E4")
+                      + svg_sparkle(cx + 300, 210, 0.6, "#FFF6E4"))
+        sticker_xy = (cx + 195, 100)
+    else:
+        cx, cy = 648, 255
+        card_group = (svg_cardback(578, 272, -13) + svg_cardback(706, 272, 12) + svg_qcard(648, 255)
+                      + svg_sparkle(460, 70, 1.1) + svg_sparkle(862, 480, 0.8) + svg_sparkle(480, 470, 0.6, "#FFF6E4"))
+        sticker_xy = (800, 80)
+    if solo:
+        speaker_svg = ""
+    elif d.get("speaker_kind") == "flag":
+        speaker_svg = svg_flagpole()
+    elif d.get("speaker_img"):
+        speaker_svg = ""
+    else:
+        speaker_svg = svg_person(205, 250, 0.92, "#E9E1CF", point=True, tie="#E5483A")
     scene = (f"<svg width='{w}' height='{h}' viewBox='0 0 {w} {h}' xmlns='http://www.w3.org/2000/svg'>"
              f"<defs><radialGradient id='spot' cx='50%' cy='40%' r='60%'><stop offset='0%' stop-color='#FFD24A' stop-opacity='.38'/>"
              f"<stop offset='100%' stop-color='#FFD24A' stop-opacity='0'/></radialGradient></defs>"
              + (svg_crash(d["mood"]) if d.get("mood") in ("down", "up") else "")
-             + svg_burst(648, 270)
-             + f"<ellipse cx='690' cy='330' rx='200' ry='290' fill='url(#spot)'/>"
-             + (svg_flagpole() if d.get("speaker_kind") == "flag" else
-                ("" if d.get("speaker_img") else svg_person(205, 250, 0.92, "#E9E1CF", point=True, tie="#E5483A")))
+             + svg_burst(cx, cy + 15, r=640 if solo else 560)
+             + f"<ellipse cx='{cx if solo else 690}' cy='330' rx='{260 if solo else 200}' ry='290' fill='url(#spot)'/>"
+             + speaker_svg
              + ("" if d.get("target_img") else
-                ((svg_cardback(578, 272, -13) + svg_cardback(706, 272, 12) + svg_qcard(648, 255)
-                  + svg_sparkle(460, 70, 1.1) + svg_sparkle(862, 480, 0.8) + svg_sparkle(480, 470, 0.6, "#FFF6E4"))
-                 if d.get("target_kind") == "card" else svg_person(690, 250, 0.92, "#25365F", face_q=True)))
-             + (svg_sticker(800, 80, d["sticker"]) if d.get("sticker") else "")
+                (card_group if d.get("target_kind") == "card" else svg_person(690, 250, 0.92, "#25365F", face_q=True)))
+             + (svg_sticker(*sticker_xy, d["sticker"]) if d.get("sticker") else "")
              + "</svg>")
     bub = f"<div class='qbub'>{d['quote_html']}</div>" if d.get("quote_html") else ""
     who = f"<div class='quote-by'>{d['quote_by']}</div>" if d.get("quote_by") else ""
@@ -670,6 +689,8 @@ def g_cover_issue(d):
                       f"<div class='mq jua'>?</div></div>")
     ticker = html_ticker(d["ticker"]) if d.get("ticker") else ""
     nt_b = ";bottom:70px" if ticker else ""
+    speaker_tag = "" if solo or not d.get("speaker") else f"<div class='nametag' style='left:60px{nt_b}'>{d['speaker']}</div>"
+    target_tag_pos = ("left:456px;transform:translateX(-50%)" if solo else f"left:{d.get('target_tag_x', 536)}px")
     bottom = ticker or f"<div class='cover-q jua'>{d.get('question_html', '정답은 안에서 👉')}</div>"
     return (f"""
 <div class='tag jua' style='margin-top:44px'>{d.get('pill', '오늘의 이슈')}</div>
@@ -680,8 +701,8 @@ def g_cover_issue(d):
   {speaker_img}
   {target_img}
   {bub}
-  <div class='nametag' style='left:60px{nt_b}'>{d['speaker']}</div>
-  <div class='nametag' style='left:{d.get("target_tag_x", 536)}px;background:#FFD24A;color:#0E1A3A{nt_b}'>{d['target']}</div>
+  {speaker_tag}
+  <div class='nametag' style='{target_tag_pos};background:#FFD24A;color:#0E1A3A{nt_b}'>{d['target']}</div>
 </div>
 {bottom}""", d.get("source", ""), False)
 

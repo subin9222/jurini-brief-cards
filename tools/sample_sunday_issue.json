@@ -8,12 +8,11 @@
       "title_size": 100,
       "quote_by": "11/22(일) 경제·금융 수장 긴급회의(F4)",
       "scene_top": 0,
-      "speaker": "대한민국 정부",
       "target": "비상 카드",
       "target_kind": "card",
       "question_html": "정답과 카드 3장, 바로 다음 장 👉",
       "source": "서울경제·뉴스1·재경일보",
-      "speaker_kind": "flag",
+      "speaker_kind": "none",
       "sticker": "18년 만",
       "ticker": [
         {
