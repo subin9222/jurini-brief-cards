@@ -126,11 +126,11 @@ h1 em, h2 em { font-style:normal; color:var(--yellow); }
 .rv-emo { font-size:64px; line-height:1.1; }
 .rv-t { font-size:31px; margin-top:8px; line-height:1.2; }
 .rv-s { font-size:23px; color:#CBD3EA; margin-top:6px; line-height:1.35; letter-spacing:-0.6px; }
-.ticker { position:absolute; left:84px; right:84px; bottom:246px; height:70px; background:#060E24; border:3px solid #2A3B6E;
-  border-radius:16px; display:flex; align-items:center; gap:26px; padding:0 22px; overflow:hidden; white-space:nowrap;
+.ticker { position:absolute; left:84px; right:84px; bottom:128px; height:96px; background:#060E24; border:3px solid #2A3B6E;
+  border-radius:16px; display:flex; align-items:center; justify-content:space-between; gap:14px; padding:0 26px 0 20px; overflow:hidden; white-space:nowrap;
   box-shadow:0 8px 0 rgba(6,14,36,.6); }
-.tk-live { background:#E5483A; color:#FFF6E4; font-size:24px; padding:6px 14px; border-radius:10px; flex:none; }
-.tk-cell { display:flex; align-items:baseline; gap:10px; font-size:27px; font-weight:800; letter-spacing:-0.6px; }
+.tk-live { background:#E5483A; color:#FFF6E4; font-size:26px; padding:6px 14px; border-radius:10px; flex:none; }
+.tk-cell { display:flex; align-items:baseline; gap:8px; font-size:29px; font-weight:800; letter-spacing:-0.6px; }
 .tk-name { color:#CBD3EA; }
 .tk-val.neg { color:#FF5A4D; } .tk-val.pos { color:#3DDC84; } .tk-val.flat { color:#9AA6C8; }
 .cover-q { position:absolute; left:84px; right:84px; bottom:130px; text-align:center; background:var(--yellow); color:var(--navy);
@@ -669,7 +669,8 @@ def g_cover_issue(d):
                       f"<img src='{src}' style='filter:blur({blur}px) saturate(1.1)'>"
                       f"<div class='mq jua'>?</div></div>")
     ticker = html_ticker(d["ticker"]) if d.get("ticker") else ""
-    nt_b = ";bottom:190px" if ticker else ""
+    nt_b = ";bottom:70px" if ticker else ""
+    bottom = ticker or f"<div class='cover-q jua'>{d.get('question_html', '정답은 안에서 👉')}</div>"
     return (f"""
 <div class='tag jua' style='margin-top:44px'>{d.get('pill', '오늘의 이슈')}</div>
 <h1 class='jua' style='font-size:{d.get('title_size', 96)}px;line-height:1.16;margin-top:24px;text-shadow:0 8px 0 #060E24'>{d['title_html']}</h1>
@@ -682,8 +683,7 @@ def g_cover_issue(d):
   <div class='nametag' style='left:60px{nt_b}'>{d['speaker']}</div>
   <div class='nametag' style='left:{d.get("target_tag_x", 536)}px;background:#FFD24A;color:#0E1A3A{nt_b}'>{d['target']}</div>
 </div>
-{ticker}
-<div class='cover-q jua'>{d.get('question_html', '정답은 안에서 👉')}</div>""", d.get("source", ""), False)
+{bottom}""", d.get("source", ""), False)
 
 
 def g_reveal(d):
