@@ -132,7 +132,7 @@ h1 em, h2 em { font-style:normal; color:var(--yellow); }
 .tk-live { background:#E5483A; color:#FFF6E4; font-size:26px; padding:6px 14px; border-radius:10px; flex:none; }
 .tk-cell { display:flex; align-items:baseline; gap:8px; font-size:29px; font-weight:800; letter-spacing:-0.6px; }
 .tk-name { color:#CBD3EA; }
-.tk-val.neg { color:#FF5A4D; } .tk-val.pos { color:#3DDC84; } .tk-val.flat { color:#9AA6C8; }
+.tk-val.neg { color:#5B8CFF; } .tk-val.pos { color:#FF5A4D; } .tk-val.flat { color:#9AA6C8; }
 .cover-q { position:absolute; left:84px; right:84px; bottom:130px; text-align:center; background:var(--yellow); color:var(--navy);
   font-size:44px; padding:18px 20px 14px; border-radius:24px; box-shadow:0 8px 0 #B8901F; }
 .foot { position:absolute; left:84px; right:84px; bottom:58px; display:flex; justify-content:space-between;
