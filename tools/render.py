@@ -126,6 +126,13 @@ h1 em, h2 em { font-style:normal; color:var(--yellow); }
 .rv-emo { font-size:64px; line-height:1.1; }
 .rv-t { font-size:31px; margin-top:8px; line-height:1.2; }
 .rv-s { font-size:23px; color:#CBD3EA; margin-top:6px; line-height:1.35; letter-spacing:-0.6px; }
+.ticker { position:absolute; left:84px; right:84px; bottom:246px; height:70px; background:#060E24; border:3px solid #2A3B6E;
+  border-radius:16px; display:flex; align-items:center; gap:26px; padding:0 22px; overflow:hidden; white-space:nowrap;
+  box-shadow:0 8px 0 rgba(6,14,36,.6); }
+.tk-live { background:#E5483A; color:#FFF6E4; font-size:24px; padding:6px 14px; border-radius:10px; flex:none; }
+.tk-cell { display:flex; align-items:baseline; gap:10px; font-size:27px; font-weight:800; letter-spacing:-0.6px; }
+.tk-name { color:#CBD3EA; }
+.tk-val.neg { color:#FF5A4D; } .tk-val.pos { color:#3DDC84; } .tk-val.flat { color:#9AA6C8; }
 .cover-q { position:absolute; left:84px; right:84px; bottom:130px; text-align:center; background:var(--yellow); color:var(--navy);
   font-size:44px; padding:18px 20px 14px; border-radius:24px; box-shadow:0 8px 0 #B8901F; }
 .foot { position:absolute; left:84px; right:84px; bottom:58px; display:flex; justify-content:space-between;
@@ -570,6 +577,64 @@ def svg_qcard(cx, cy):
             f"<text x='{cx}' y='{cy+88}' text-anchor='middle' font-family=\"'Jua'\" font-size='270' fill='#E5483A'>?</text></g>")
 
 
+def svg_burst(cx, cy, n=18, r=560, color="#FFD24A", op=0.30):
+    """주인공 뒤로 퍼지는 햇살(정답 카드를 꺼내는 순간)."""
+    import math
+    out = (f"<defs><radialGradient id='burstfade'><stop offset='0' stop-color='#fff'/><stop offset='.55' stop-color='#fff' stop-opacity='.6'/>"
+           f"<stop offset='1' stop-color='#fff' stop-opacity='0'/></radialGradient>"
+           f"<mask id='burstmask'><ellipse cx='{cx}' cy='{cy+40}' rx='{r*0.85:.0f}' ry='{r*0.5:.0f}' fill='url(#burstfade)'/></mask></defs>"
+           f"<g opacity='{op}' mask='url(#burstmask)'>")
+    for i in range(n):
+        a0 = 2 * math.pi * i / n; a1 = a0 + math.pi / n * 0.55
+        out += (f"<path d='M{cx},{cy} L{cx + r*math.cos(a0):.0f},{cy + r*math.sin(a0):.0f} "
+                f"L{cx + r*math.cos(a1):.0f},{cy + r*math.sin(a1):.0f} Z' fill='{color}'/>")
+    return out + "</g>"
+
+
+def svg_crash(direction="down"):
+    """배경에 깔리는 급락(또는 급등) 차트 선 — 깃발과 카드 사이를 가로지른다."""
+    down = direction == "down"
+    pts = ([(30, 40), (110, 70), (180, 50), (250, 130), (310, 110), (370, 240), (420, 220), (470, 380), (520, 360), (575, 560)]
+           if down else
+           [(30, 560), (110, 520), (180, 540), (250, 440), (310, 460), (370, 320), (420, 340), (470, 180), (520, 200), (575, 40)])
+    col = "#E5483A" if down else "#2FBF71"
+    d = "M" + " L".join(f"{x},{y}" for x, y in pts)
+    (x1, y1), (x2, y2) = pts[-2], pts[-1]
+    import math
+    a = math.atan2(y2 - y1, x2 - x1); L = 34
+    head = (f"M{x2 + 6*math.cos(a):.0f},{y2 + 6*math.sin(a):.0f} "
+            f"L{x2 - L*math.cos(a - 0.5):.0f},{y2 - L*math.sin(a - 0.5):.0f} "
+            f"L{x2 - L*math.cos(a + 0.5):.0f},{y2 - L*math.sin(a + 0.5):.0f} Z")
+    return (f"<g opacity='.75'><path d='{d}' fill='none' stroke='#060E24' stroke-width='22' stroke-linejoin='round' stroke-linecap='round' opacity='.5'/>"
+            f"<path d='{d}' fill='none' stroke='{col}' stroke-width='12' stroke-linejoin='round' stroke-linecap='round'/>"
+            f"<path d='{head}' fill='{col}'/></g>")
+
+
+def svg_sparkle(x, y, s=1.0, color="#FFD24A"):
+    return (f"<path transform='translate({x} {y}) scale({s})' d='M0,-28 C4,-6 6,-4 28,0 C6,4 4,6 0,28 C-4,6 -6,4 -28,0 C-6,-4 -4,-6 0,-28 Z' fill='{color}'/>")
+
+
+def svg_cardback(cx, cy, rot):
+    """부채꼴로 펼친 뒷면 카드(네이비 + 노란 테두리 무늬)."""
+    return (f"<g transform='rotate({rot} {cx} {cy})' filter='drop-shadow(0 10px 0 #060E24)'>"
+            f"<rect x='{cx-150}' y='{cy-205}' width='300' height='410' rx='28' fill='#22346A' stroke='#FFF6E4' stroke-width='10'/>"
+            f"<rect x='{cx-118}' y='{cy-173}' width='236' height='346' rx='16' fill='none' stroke='#FFD24A' stroke-width='4'/>"
+            f"<path d='M{cx},{cy-70} L{cx+52},{cy} L{cx},{cy+70} L{cx-52},{cy} Z' fill='#FFD24A' opacity='.9'/>"
+            f"<circle cx='{cx}' cy='{cy}' r='16' fill='#22346A'/></g>")
+
+
+def html_ticker(items):
+    """증권사 전광판 띠: [{name, value}] — 값이 '-'·'−'로 시작하면 빨강 ▼, 아니면 초록 ▲."""
+    cells = ""
+    for it in items:
+        v = str(it["value"]).strip(); neg = v.startswith(("-", "−"))
+        flat = v.lstrip("-−+").replace("0", "").replace(".", "").replace("%", "").replace(",", "").strip() == ""
+        cls, arrow = ("flat", "–") if flat else (("neg", "▼") if neg else ("pos", "▲"))
+        cells += (f"<span class='tk-cell'><span class='tk-name'>{it['name']}</span>"
+                  f"<span class='tk-val {cls}'>{arrow} {v.lstrip('-−+').strip()}</span></span>")
+    return f"<div class='ticker'><span class='tk-live jua'>전광판</span>{cells}</div>"
+
+
 def g_cover_issue(d):
     """이슈 표지: 질문형 제목 + '누가 누구를' 장면(실루엣) + 말풍선 인용.
     d: pill, title_html, speaker(이름표), quote_html(말풍선), target(물음표 인물 이름표), sub_html, question_html"""
@@ -577,12 +642,16 @@ def g_cover_issue(d):
     scene = (f"<svg width='{w}' height='{h}' viewBox='0 0 {w} {h}' xmlns='http://www.w3.org/2000/svg'>"
              f"<defs><radialGradient id='spot' cx='50%' cy='40%' r='60%'><stop offset='0%' stop-color='#FFD24A' stop-opacity='.38'/>"
              f"<stop offset='100%' stop-color='#FFD24A' stop-opacity='0'/></radialGradient></defs>"
-             f"<ellipse cx='690' cy='330' rx='200' ry='290' fill='url(#spot)'/>"
+             + (svg_crash(d["mood"]) if d.get("mood") in ("down", "up") else "")
+             + svg_burst(648, 270)
+             + f"<ellipse cx='690' cy='330' rx='200' ry='290' fill='url(#spot)'/>"
              + (svg_flagpole() if d.get("speaker_kind") == "flag" else
                 ("" if d.get("speaker_img") else svg_person(205, 250, 0.92, "#E9E1CF", point=True, tie="#E5483A")))
              + ("" if d.get("target_img") else
-                (svg_qcard(690, 300) if d.get("target_kind") == "card" else svg_person(690, 250, 0.92, "#25365F", face_q=True)))
-             + (svg_sticker(835, 95, d["sticker"]) if d.get("sticker") else "")
+                ((svg_cardback(578, 272, -13) + svg_cardback(706, 272, 12) + svg_qcard(648, 255)
+                  + svg_sparkle(460, 70, 1.1) + svg_sparkle(862, 480, 0.8) + svg_sparkle(480, 470, 0.6, "#FFF6E4"))
+                 if d.get("target_kind") == "card" else svg_person(690, 250, 0.92, "#25365F", face_q=True)))
+             + (svg_sticker(800, 80, d["sticker"]) if d.get("sticker") else "")
              + "</svg>")
     bub = f"<div class='qbub'>{d['quote_html']}</div>" if d.get("quote_html") else ""
     who = f"<div class='quote-by'>{d['quote_by']}</div>" if d.get("quote_by") else ""
@@ -599,6 +668,8 @@ def g_cover_issue(d):
         target_img = (f"<div class='mystery' style='left:{d.get('target_x', 470)}px'>"
                       f"<img src='{src}' style='filter:blur({blur}px) saturate(1.1)'>"
                       f"<div class='mq jua'>?</div></div>")
+    ticker = html_ticker(d["ticker"]) if d.get("ticker") else ""
+    nt_b = ";bottom:190px" if ticker else ""
     return (f"""
 <div class='tag jua' style='margin-top:44px'>{d.get('pill', '오늘의 이슈')}</div>
 <h1 class='jua' style='font-size:{d.get('title_size', 96)}px;line-height:1.16;margin-top:24px;text-shadow:0 8px 0 #060E24'>{d['title_html']}</h1>
@@ -608,9 +679,10 @@ def g_cover_issue(d):
   {speaker_img}
   {target_img}
   {bub}
-  <div class='nametag' style='left:60px'>{d['speaker']}</div>
-  <div class='nametag' style='left:556px;background:#FFD24A;color:#0E1A3A'>{d['target']}</div>
+  <div class='nametag' style='left:60px{nt_b}'>{d['speaker']}</div>
+  <div class='nametag' style='left:{d.get("target_tag_x", 536)}px;background:#FFD24A;color:#0E1A3A{nt_b}'>{d['target']}</div>
 </div>
+{ticker}
 <div class='cover-q jua'>{d.get('question_html', '정답은 안에서 👉')}</div>""", d.get("source", ""), False)
 
 

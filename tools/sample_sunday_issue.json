@@ -14,7 +14,21 @@
       "question_html": "정답과 카드 3장, 바로 다음 장 👉",
       "source": "서울경제·뉴스1·재경일보",
       "speaker_kind": "flag",
-      "sticker": "18년 만"
+      "sticker": "18년 만",
+      "ticker": [
+        {
+          "name": "나스닥",
+          "value": "−5.28%"
+        },
+        {
+          "name": "엔비디아",
+          "value": "−14.01%"
+        },
+        {
+          "name": "야간선물",
+          "value": "−6.99%"
+        }
+      ]
     },
     {
       "type": "reveal",
