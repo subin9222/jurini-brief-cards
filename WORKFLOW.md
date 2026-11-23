@@ -66,11 +66,16 @@
 - **답은 04 카드에서 이야기로 푼다.** 사건이 날짜를 따라 이어지는 이슈는 `timeline` 카드를 쓴다:
   `items` 3개(날짜·소제목·2줄 설명), 마지막 항목은 "지금"의 상황(노란색 강조). 그 아래 3줄 요약은 "그래서 무슨 의미인지"를 쉽게 푼다.
   타임라인의 각 사건은 **두 곳 이상 언론**으로 확인된 것만 넣는다. 한 곳에서만 보도된 내용은 빼거나 "(보도)"로 표시한다.
-- **발언한 인물의 캐리커처 넣기 — 캐릭터 도감만 사용 (2026-11-23)**: 표지의 발언자(`speaker`)가 `tools/cast/cast.json` 도감에 있는 인물이면 그 그림을 쓰고, 정답 인물(`target`)은 물음표 실루엣으로 둔다.
-  - content.json에 `"speaker_img": "../../tools/cast/<파일명>"`(content.json 위치 기준 상대 경로)을 넣는다. 크기는 `speaker_h`(기본 600), 위치는 `speaker_x`(기본 −10).
-  - **도감에 없는 인물은 실루엣으로 그린다.** Higgsfield 등 이미지 생성 서비스로 그림을 **새로 만들지 않는다**(운영자 지시). 컨펌 요청 때 "도감에 없는 인물이라 실루엣으로 했어요"라고 알린다.
-  - 도감 그림을 쓴 날은 Metricool 게시 때 `instagramData.isAiGenerated: true`로 표시한다.
-  - 배경 지우기 도구: `python3 tools/cutout.py <입력.png> <출력.png>` (도감에 새 그림을 추가할 때만 사용).
+- **발언한 인물의 캐리커처 넣기 — 도감 우선, 없으면 Higgsfield로 그려 도감에 저장 (2026-11-23)**: 정답 인물(`target`)은 항상 물음표 실루엣으로 둔다.
+  1. **도감 먼저 확인**: `tools/cast/cast.json`에 그 인물과 맞는 동작(point=지목, talk=말하기 등)이 있으면 그 그림을 쓴다. 새로 그리지 않는다.
+  2. **도감에 없을 때만** Higgsfield `generate_image`: model `gpt_image_2_6`, `aspect_ratio` "1:1", `count` 1. 프롬프트 틀(이름·특징·동작만 바꾼다):
+     "Cute chibi cartoon caricature of {영문 이름} for an editorial news illustration: big head, small body, {대표적 외모 특징 2~3개}, {옷차림}, {표정}, standing three-quarter view and {동작: pointing his/her index finger strongly to the right side of the frame / raising one hand while speaking}. Flat 2D vector style with thick dark outlines and soft cel shading, Korean webtoon chibi style, friendly and humorous, not mocking. Plain solid deep navy background (#0E1A3A), full body visible, character placed on the left half, empty space on the right. No text, no logos, no flags."
+  3. `jobs_wait`로 완료를 기다린 뒤 결과 주소(`result_url`, d8j0ntlcm91z4.cloudfront.net)를 `curl`로 받아 `python3 tools/cutout.py <받은.png> tools/cast/<영문이름>_<동작>.png` 로 배경을 지운다.
+  4. 그림을 직접 열어 확인한다: 그 인물로 알아볼 수 있는지, 친근한 치비체인지, 비하·조롱하는 과장이 없는지, 그림 안에 글자가 없는지. 아니면 한 번만 다시 그린다. 생성이 거절·실패하면 실루엣으로 진행한다.
+  5. **도감에 저장**: `tools/cast/cast.json`에 인물(이름표 문구)과 동작별 파일명을 추가하고 커밋한다. 다음부터는 이 그림을 재사용한다.
+  6. content.json 표지에 `"speaker_img": "../../tools/cast/<파일명>"`(content.json 위치 기준)을 넣는다. 크기 `speaker_h`(기본 600), 위치 `speaker_x`(기본 −10).
+  7. **컨펌 요청 메시지에 반드시 적는다**: "오늘 Higgsfield에서 그림을 1장 새로 만들었어요(작업 ID: …, 만든 시각: …). Higgsfield 생성 내역에서 지워 주세요." 도감 그림을 재사용한 날은 "새로 만든 그림은 없어요"라고 적는다.
+  8. 캐리커처를 쓴 날은 Metricool 게시 때 `instagramData.isAiGenerated: true`로 표시한다. 비용은 한 장에 약 0.75크레딧.
 - **그림 규칙**: 실존 인물의 **사진은 절대 쓰지 않는다.** 발언자는 도감에 있는 친근한 치비 캐리커처만, 정답 인물과 그 밖의 인물은 얼굴 없는 실루엣으로 그린다. 누구인지는 이름표로도 함께 알린다.
 - **사실 확인**: 표지 이슈는 반드시 2개 이상 언론으로 확인하고 날짜가 최신(가능하면 24시간 이내)인지 본다. 직함은 정확히 쓴다(예: CEO와 이사회 의장을 혼동하지 않기).
 - 사생활 의혹·루머는 표지 이슈로 쓰지 않는다. 시장에 영향을 준 공식 발언·결정만 다룬다.

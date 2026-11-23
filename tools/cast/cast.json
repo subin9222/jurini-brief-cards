@@ -1,4 +1,12 @@
 {
-  "_설명": "표지에 쓰는 인물 캐리커처 도감. 파일은 배경을 지운 PNG. 새 인물은 운영자가 승인한 방법으로만 추가한다.",
-  "trump": {"name": "트럼프 美 대통령", "poses": {"point": "trump_point.png"}}
+  "_설명": "표지에 쓰는 인물 캐리커처 도감(배경을 지운 PNG). 도감에 없는 인물만 Higgsfield로 새로 그려 여기에 추가한다. 키는 영문 이름.",
+  "trump": {
+    "name": "트럼프 美 대통령",
+    "poses": {
+      "point": "trump_point.png"
+    },
+    "made": {
+      "point": "2026-11-23 Higgsfield gpt_image_2_6"
+    }
+  }
 }
