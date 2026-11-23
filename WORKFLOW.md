@@ -189,29 +189,16 @@ push 후 card_01 주소가 HTTP 200 / image/jpeg로 열리는지 확인.
 - 운영자가 "2번 이슈로 바꿔줘"처럼 말하면 그 이슈로 표지·01·05(용어)를 다시 만든다.
 - 답이 없으면 아무것도 게시하지 않는다.
 
-## 8. 게시 (승인 후에만)
-### 무료 운영 규칙 (2026-11-23 운영자 결정: 반응이 오기 전까지 유료 결제 안 함)
-Metricool 무료 요금제는 **한 달 20건**(실제 게시 기준, 매달 1일 초기화). 계정을 여러 개 만드는 우회는 하지 않는다(약관 위반, 연결도 1계정만 가능).
-- **릴스가 우선**: 승인이 오면 먼저 이번 달 Metricool 게시 수를 센다(`getAnalyticsDataByMetrics`로 이번 달 1일~오늘 instagram posts·reels 수 + `getScheduledPosts`의 아직 안 나간 예약 수). 남은 수 = 20 − 그 합.
-  - 남은 수 ≥ 1 → **릴스만** Metricool로 자동 게시(승인 5분 뒤).
-  - 남은 수 = 0 → 자동 게시하지 않는다. reel.mp4와 릴스 캡션을 보내며 "이번 달 무료 한도를 다 써서, 인스타 앱에서 직접 올려 주세요"라고 안내한다.
-- **카드(캐러셀)는 자동 게시하지 않는다.** 카드 7장과 캡션은 매일 만들어 보내고, 운영자가 원하면 인스타 앱에서 직접 올린다(저장용 콘텐츠). 운영자가 "카드도 자동으로 올려"라고 하고 남은 수가 2 이상이면 그날만 캐러셀도 자동 게시한다.
-- 컨펌 메시지에 "이번 달 무료 게시 남은 수: N건"을 적는다.
-- 팔로워·도달이 늘어 운영자가 유료 전환을 정하면 이 규칙을 지우고 캐러셀+릴스 자동 게시로 돌린다.
-
-Metricool `createScheduledPost`:
-- blogId `7871767`, providers `[{"network":"instagram"}]`, `instagramData: {"type":"POST"}`
-- media: 위 raw 주소 7개(순서대로), text: caption.txt 전문
-- `draft: false`, `autoPublish: true`
-- AI로 그린 그림(캐리커처·주린이·비유 그림)이 하나라도 들어간 날은 `instagramData`에 `"isAiGenerated": true`를 넣는다(주린이가 매일 들어가므로 사실상 매일).
-- 날짜: 지금(한국 시간)으로부터 5분 뒤, `publicationDate.timezone: "Asia/Seoul"`
-**릴스도 함께 게시**(같은 승인으로, 캐러셀 게시 직후 별도 호출):
-- `instagramData: {"type":"REEL", "showReelOnFeed": true, "isAiGenerated": true}`, media: reel.mp4 raw 주소 1개, text: reel_caption.txt
-- `videoCoverMilliseconds: 1500`(표지가 다 보이는 순간을 썸네일로)
-- 날짜: 캐러셀보다 **2시간 뒤**(같은 시각에 두 개를 올리면 서로 노출을 나눠 먹는다). 운영자가 "같이 올려"라고 하면 그에 따른다.
-- 음악(운영자 지정 규칙, `tools/music/music.json`): 평소에는 ① lofi와 ③ ticker를 **날짜에 따라 번갈아** 쓰고, **'엄청 위기'인 날은 ② marimba**를 쓴다. reel.py가 자동으로 고른다.
-  - '엄청 위기'인 날이면 content.json 맨 위에 `"crisis": true`를 넣는다. 기준: 코스피·코스닥 중 하나라도 하루 **−4% 이하** 급락, 또는 **서킷브레이커·매도 사이드카** 발동, 또는 정부의 **긴급 시장안정 대책** 발표(증안펀드 가동 등). 애매하면 넣지 않고 컨펌 메시지에 "위기 곡으로 바꿀까요?"라고 묻는다.
-  - 컨펌 메시지에 오늘 쓴 곡(lofi/ticker/marimba)을 적는다. 모두 Higgsfield로 직접 만든 전용 곡이고, 외부 음원·인기곡은 쓰지 않는다.
-게시 예약 결과(plannerUrl)를 운영자에게 알린다. 오류가 나면 내용을 그대로 전달하고 재시도는 한 번만.
-
-참고: Metricool 무료 플랜은 예약 게시 20건 한도가 있다. 한도 오류가 나면 운영자에게 플랜 업그레이드 필요를 알린다.
+## 8. 게시 (승인 후에만) — 인스타그램 공식 API 직접 게시 (2026-11-23 전환, 무료·한도 하루 100건)
+Metricool은 더 이상 쓰지 않는다(무료 20건/월 한도). `tools/ig_post.py`로 @jurini.brief에 직접 게시한다.
+1. 비공개 저장소 연결: `add_repo(owner "subin9222", repo "jurini-secrets", access "read")` → `git clone --depth 1 https://github.com/subin9222/jurini-secrets /home/claude/jurini-secrets`.
+   토큰 파일 `/home/claude/jurini-secrets/ig_token.txt` (만료 없는 시스템 사용자 토큰, '주린이 브리핑' 포트폴리오). **토큰 내용을 출력·커밋·메시지에 절대 넣지 않는다.**
+2. 컨펌 전에 `python3 tools/ig_post.py check --token <토큰파일>`로 계정이 jurini.brief인지 확인한다(아니면 멈추고 운영자에게 알림).
+3. 운영자가 "올려줘"라고 하면(카드·영상·캡션을 이미 push한 상태에서):
+   - `python3 tools/ig_post.py carousel --token <토큰파일> --date YYYY-MM-DD` → 카드 7장 캐러셀 게시
+   - 이어서 `python3 tools/ig_post.py reel --token <토큰파일> --date YYYY-MM-DD` → 릴스 게시(영상 처리에 1~2분)
+   - 프로그램이 계정 이름(jurini.brief), 해시태그 5개 이하, 캡션 2200자 이하를 확인하고 어기면 멈춘다.
+4. 출력된 게시 링크(permalink) 두 개를 운영자에게 알린다. 오류가 나면 내용을 그대로 전하고 재시도는 한 번만.
+5. 운영자가 "릴스는 나중에"처럼 말하면 그에 따른다. API는 예약 게시가 없으므로 '지금 게시'만 한다.
+- 인스타그램 'AI 정보' 표시는 API로 설정할 수 없다. 필요하면 운영자가 앱에서 게시물별로 켤 수 있다고 안내한다.
+- 비상 시(토큰 오류 등) 예전 방식: Metricool createScheduledPost(blogId 7871767)도 남아 있지만 무료 한도 20건/월에 주의.
