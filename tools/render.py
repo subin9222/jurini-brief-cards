@@ -92,8 +92,21 @@ h1 em, h2 em { font-style:normal; color:var(--yellow); }
   padding:20px 26px 18px; font-size:30px; line-height:1.4; letter-spacing:-0.8px; box-shadow:0 8px 0 #060E24; }
 .qbub::after { content:''; position:absolute; left:40px; bottom:-28px; border:16px solid transparent; border-top:20px solid #fff; }
 .qbub b { color:var(--up); }
-.nametag { position:absolute; bottom:28px; background:var(--cream); color:var(--navy); font-size:28px; font-weight:800;
+.nametag { position:absolute; bottom:110px; background:var(--cream); color:var(--navy); font-size:28px; font-weight:800;
   padding:8px 20px 6px; border-radius:12px; box-shadow:0 6px 0 #060E24; letter-spacing:-0.6px; }
+.quote-by { margin-top:14px; font-size:28px; color:#CBD3EA; letter-spacing:-0.6px; }
+.tl-row { display:flex; gap:22px; }
+.tl-rail { width:30px; flex:none; display:flex; flex-direction:column; align-items:center; }
+.tl-dot { width:24px; height:24px; border-radius:50%; border:5px solid var(--yellow); margin-top:18px; flex:none; }
+.tl-line { flex:1; width:4px; background:rgba(255,210,74,.45); margin-top:4px; }
+.tl-body { flex:1; background:var(--cream); color:var(--navy); border-radius:22px; padding:12px 24px 12px; margin-bottom:14px;
+  box-shadow:0 6px 0 #060E24; }
+.tl-now { background:var(--yellow); }
+.tl-date { font-size:24px; color:#6B7390; }
+.tl-now .tl-date { color:#5A4A12; }
+.tl-title { font-size:32px; margin-top:0; }
+.tl-text { font-size:25px; line-height:1.42; color:#3A4462; margin-top:4px; letter-spacing:-0.8px; }
+.tl-now .tl-text { color:#3A2E08; }
 .cover-q { position:absolute; left:84px; right:84px; bottom:130px; text-align:center; background:var(--yellow); color:var(--navy);
   font-size:44px; padding:18px 20px 14px; border-radius:24px; box-shadow:0 8px 0 #B8901F; }
 .foot { position:absolute; left:84px; right:84px; bottom:58px; display:flex; justify-content:space-between;
@@ -479,16 +492,40 @@ def g_cover_issue(d):
              + svg_person(205, 250, 0.92, "#E9E1CF", point=True, tie="#E5483A")
              + svg_person(690, 250, 0.92, "#25365F", face_q=True)
              + "</svg>")
+    bub = f"<div class='qbub'>{d['quote_html']}</div>" if d.get("quote_html") else ""
+    who = f"<div class='quote-by'>{d['quote_by']}</div>" if d.get("quote_by") else ""
+    scene_top = d.get("scene_top", 16)
     return (f"""
 <div class='tag jua' style='margin-top:44px'>{d.get('pill', '오늘의 이슈')}</div>
-<h1 class='jua' style='font-size:{d.get('title_size', 96)}px;line-height:1.12;margin-top:24px;text-shadow:0 8px 0 #060E24'>{d['title_html']}</h1>
-<div style='position:relative;margin-top:16px;height:{h}px'>
+<h1 class='jua' style='font-size:{d.get('title_size', 96)}px;line-height:1.16;margin-top:24px;text-shadow:0 8px 0 #060E24'>{d['title_html']}</h1>
+{who}
+<div style='position:relative;margin-top:{scene_top}px;height:{h - 40}px;overflow:hidden'>
   <div style='position:absolute;left:-16px;top:0'>{scene}</div>
-  <div class='qbub'>{d['quote_html']}</div>
+  {bub}
   <div class='nametag' style='left:60px'>{d['speaker']}</div>
   <div class='nametag' style='left:556px;background:#FFD24A;color:#0E1A3A'>{d['target']}</div>
 </div>
 <div class='cover-q jua'>{d.get('question_html', '정답은 안에서 👉')}</div>""", d.get("source", ""), False)
+
+
+def g_timeline(d):
+    """이야기 흐름 카드: 날짜별 사건을 세로 타임라인으로. items: [{date, title, text_html, dir?}]
+    마지막 항목이 '지금'이며 노란색으로 강조된다."""
+    rows = ""
+    n = len(d["items"])
+    for i, it in enumerate(d["items"]):
+        last = i == n - 1
+        dot = "var(--yellow)" if last else "#fff"
+        line = "" if last else "<div class='tl-line'></div>"
+        rows += f"""
+<div class='tl-row'>
+  <div class='tl-rail'><div class='tl-dot' style='background:{dot}'></div>{line}</div>
+  <div class='tl-body{' tl-now' if last else ''}'><div class='tl-date jua'>{it['date']}</div>
+    <div class='tl-title jua'>{it['title']}</div><div class='tl-text'>{it['text_html']}</div></div>
+</div>"""
+    return (f"""{_title(d, 60)}
+<div style='margin-top:22px'>{rows}</div>
+{_bullets(d)}""", d.get("source", ""))
 
 
 def g_market(d):
@@ -544,7 +581,7 @@ NUM_STYLE_BIG = "style=\"font-family:'Noto Sans CJK KR',sans-serif;font-weight:9
 GENERIC = {"cover": g_cover, "rows": g_rows, "indicators": g_indicators, "list": g_list,
            "stocks": g_stocks, "term": g_term, "preview": g_preview,
            "market": g_market, "flows": g_flows, "bars": g_bars, "issue": g_issue,
-           "cover_issue": g_cover_issue}
+           "cover_issue": g_cover_issue, "timeline": g_timeline}
 
 
 def build_generic(c):
