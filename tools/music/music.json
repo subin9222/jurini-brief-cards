@@ -1,0 +1,5 @@
+{
+  "_설명": "릴스 배경음악 규칙 (2026-11-23 운영자 지정). 평소에는 rotate 두 곡을 날짜에 따라 번갈아 쓰고, content.json에 \"crisis\": true 인 날은 crisis 곡을 쓴다.",
+  "rotate": ["lofi", "ticker"],
+  "crisis": "marimba"
+}

@@ -2,7 +2,7 @@
 
 사용법:  python3 tools/reel.py <카드 폴더> [출력 mp4] [--music 파일|키]
   - --music: 배경음악. tools/music/<키>.mp3 의 키(예: jingle1) 또는 파일 경로.
-             생략하면 tools/music/default.txt 에 적힌 키를 쓰고, 그것도 없으면 무음.
+             생략하면 tools/music/music.json 규칙(평소 lofi·ticker 번갈아, content.json "crisis": true 이면 marimba).
   - 카드 폴더: render.py가 만든 card_01.jpg … 가 있는 폴더
   - 출력 기본값: <카드 폴더>/reel.mp4
 
@@ -90,8 +90,22 @@ def main():
     folder = Path(args[0]).resolve()
     out = Path(args[1]).resolve() if len(args) > 1 else folder / "reel.mp4"
     mdir = TOOLS / "music"
-    if music is None and (mdir / "default.txt").exists():
-        music = (mdir / "default.txt").read_text().strip() or None
+    if music is None and (mdir / "music.json").exists():   # 운영자 규칙: 평소 번갈아, 위기일엔 위기 곡
+        import json, datetime
+        rule = json.loads((mdir / "music.json").read_text(encoding="utf-8"))
+        try:
+            content = json.loads((folder / "content.json").read_text(encoding="utf-8"))
+        except Exception:
+            content = {}
+        if content.get("crisis"):
+            music = rule["crisis"]
+        else:
+            try:
+                day = datetime.date.fromisoformat(folder.name).toordinal()
+            except ValueError:
+                day = datetime.date.today().toordinal()
+            music = rule["rotate"][day % len(rule["rotate"])]
+        print(f"music: {music}{' (위기일)' if content.get('crisis') else ''}")
     if music and not Path(music).exists():
         music = str(mdir / f"{music}.mp3")
     if music and not Path(music).exists():

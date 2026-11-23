@@ -200,7 +200,9 @@ Metricool `createScheduledPost`:
 - `instagramData: {"type":"REEL", "showReelOnFeed": true, "isAiGenerated": true}`, media: reel.mp4 raw 주소 1개, text: reel_caption.txt
 - `videoCoverMilliseconds: 1500`(표지가 다 보이는 순간을 썸네일로)
 - 날짜: 캐러셀보다 **2시간 뒤**(같은 시각에 두 개를 올리면 서로 노출을 나눠 먹는다). 운영자가 "같이 올려"라고 하면 그에 따른다.
-- 음악: reel.py가 `tools/music/default.txt`에 적힌 우리 전용 곡(Higgsfield로 직접 만든 곡, 저작권 걱정 없음)을 자동으로 깐다. 외부 음원·인기곡은 쓰지 않는다.
+- 음악(운영자 지정 규칙, `tools/music/music.json`): 평소에는 ① lofi와 ③ ticker를 **날짜에 따라 번갈아** 쓰고, **'엄청 위기'인 날은 ② marimba**를 쓴다. reel.py가 자동으로 고른다.
+  - '엄청 위기'인 날이면 content.json 맨 위에 `"crisis": true`를 넣는다. 기준: 코스피·코스닥 중 하나라도 하루 **−4% 이하** 급락, 또는 **서킷브레이커·매도 사이드카** 발동, 또는 정부의 **긴급 시장안정 대책** 발표(증안펀드 가동 등). 애매하면 넣지 않고 컨펌 메시지에 "위기 곡으로 바꿀까요?"라고 묻는다.
+  - 컨펌 메시지에 오늘 쓴 곡(lofi/ticker/marimba)을 적는다. 모두 Higgsfield로 직접 만든 전용 곡이고, 외부 음원·인기곡은 쓰지 않는다.
 게시 예약 결과(plannerUrl)를 운영자에게 알린다. 오류가 나면 내용을 그대로 전달하고 재시도는 한 번만.
 
 참고: Metricool 무료 플랜은 예약 게시 20건 한도가 있다. 한도 오류가 나면 운영자에게 플랜 업그레이드 필요를 알린다.
