@@ -133,6 +133,18 @@ h1 em, h2 em { font-style:normal; color:var(--yellow); }
 .tk-cell { display:flex; align-items:baseline; gap:8px; font-size:29px; font-weight:800; letter-spacing:-0.6px; }
 .tk-name { color:#CBD3EA; }
 .tk-val.neg { color:#5B8CFF; } .tk-val.pos { color:#FF5A4D; } .tk-val.flat { color:#9AA6C8; }
+.mz { position:absolute; right:58px; bottom:104px; display:flex; align-items:center; gap:4px; z-index:3; pointer-events:none; }
+.mz img { filter:drop-shadow(0 8px 0 rgba(6,14,36,.7)); }
+.say { position:relative; max-width:600px; background:var(--cream); color:var(--navy); font-size:33px; line-height:1.3;
+  padding:20px 28px 16px; border-radius:26px; border:4px solid var(--yellow); margin-right:22px; box-shadow:0 8px 0 rgba(6,14,36,.6); }
+.say::after { content:''; position:absolute; right:-26px; top:50%; margin-top:-14px; border:14px solid transparent; border-left:22px solid var(--yellow); }
+.say b { color:var(--up); font-weight:400; }
+body.has-mz .bul { max-width:700px; }
+body.has-mz .cta { right:300px; }
+body.has-mz .cta img { display:none; }
+body.has-mz .watch { margin-right:130px; }
+.an-row { display:flex; align-items:center; gap:26px; }
+.an-img { width:330px; flex:none; }
 .cover-q { position:absolute; left:84px; right:84px; bottom:130px; text-align:center; background:var(--yellow); color:var(--navy);
   font-size:44px; padding:18px 20px 14px; border-radius:24px; box-shadow:0 8px 0 #B8901F; }
 .foot { position:absolute; left:84px; right:84px; bottom:58px; display:flex; justify-content:space-between;
@@ -153,15 +165,29 @@ def candles():
     return f"<div class='candles'>{bars}</div>"
 
 
-def page(date_label, inner, n, total, source="", deco=True):
+CAST_DIR = Path(__file__).resolve().parent / "cast"
+
+
+def mascot_zone(d):
+    """내용 페이지 오른쪽 아래: 주린이(표정) + 말풍선 한 줄 결론(say)."""
+    if not d or not d.get("mascot"):
+        return ""
+    src = (CAST_DIR / f"jurini_{d['mascot']}.png").as_uri()
+    say = f"<div class='say jua'>{d['say']}</div>" if d.get("say") else ""
+    return f"<div class='mz'>{say}<img src='{src}' style='height:{d.get('mascot_h', 230)}px'></div>"
+
+
+def page(date_label, inner, n, total, source="", deco=True, d=None):
     foot_left = f"출처: {source}" if source else "투자 판단과 책임은 본인에게 있습니다"
+    mz = mascot_zone(d) if d and d.get("type") != "cover_issue" else ""
     return f"""<!doctype html><html><head><meta charset='utf-8'>
 <link rel='stylesheet' href='{FONT_CSS}'><style>{CSS}</style></head>
-<body><div class='bg'></div>{candles() if deco else ''}
+<body class='{"has-mz" if mz else ""}'><div class='bg'></div>{candles() if deco else ''}
 <div class='frame'>
 <div class='top'><div class='brand jua'><img src='{AVATAR}'>주린이 <b>브리핑</b></div><span class='date jua'>{date_label}</span></div>
 {inner}
 </div>
+{mz}
 <div class='foot'><span>{foot_left}</span><span class='jua' style='font-size:26px'>{n} / {total}</span></div>
 </body></html>"""
 
@@ -358,7 +384,8 @@ def svg_diverge(spec, w=820):
     """등락 막대: {"items":[{"label":"나스닥","value":-2.25,"text":"−2.25%"}], "caption":"..."}
     0을 가운데 두고 상승은 오른쪽 빨강, 하락은 왼쪽 파랑."""
     items = spec["items"]
-    row, lab_w = 54, 250
+    row, lab_w = spec.get("row", 54), 250
+    k = row / 54                       # 행이 커지면 막대·글자도 함께 키운다
     h = row * len(items) + 8
     vals = [float(it["value"]) for it in items]
     if all(v <= 0 for v in vals):      # 모두 하락: 0을 오른쪽 끝에 두고 왼쪽으로 길게
@@ -377,10 +404,11 @@ def svg_diverge(spec, w=820):
         bw = max(6, abs(v) / m * half)
         c = UP if v > 0 else DOWN
         x = zero if v > 0 else zero - bw
-        out.append(f"<text x='0' y='{y+30}' {SVG_FONT} font-size='28' font-weight='700' fill='{NAVY}'>{it['label']}</text>")
-        out.append(f"<rect x='{x:.1f}' y='{y+6}' width='{bw:.1f}' height='32' rx='8' fill='{c}'/>")
+        bh = 32 * k; mid = y + 6 * k + bh / 2
+        out.append(f"<text x='0' y='{mid + 10*k:.0f}' {SVG_FONT} font-size='{28*min(k,1.2):.0f}' font-weight='700' fill='{NAVY}'>{it['label']}</text>")
+        out.append(f"<rect x='{x:.1f}' y='{y + 6*k:.1f}' width='{bw:.1f}' height='{bh:.0f}' rx='{8*k:.0f}' fill='{c}'/>")
         tx, anc = (zero + bw + 10, "start") if v > 0 else (zero - bw - 10, "end")
-        out.append(f"<text x='{tx:.1f}' y='{y+32}' text-anchor='{anc}' {SVG_FONT} font-size='26' font-weight='900' fill='{c}'>{it['text']}</text>")
+        out.append(f"<text x='{tx:.1f}' y='{mid + 10*k:.0f}' text-anchor='{anc}' {SVG_FONT} font-size='{26*min(k,1.2):.0f}' font-weight='900' fill='{c}'>{it['text']}</text>")
     out.append("</svg>")
     return "".join(out)
 
@@ -466,13 +494,16 @@ def g_stocks(d):
 
 
 def g_term(d):
+    img = ""
+    if d.get("analogy_img"):  # tools/cast/analogy/<키>.png
+        img = f"<img class='an-img' src='{(CAST_DIR / 'analogy' / (d['analogy_img'] + '.png')).as_uri()}'>"
+    body = f"<div class='note' style='font-size:31px;color:#2A3555;line-height:1.5'>{d['analogy_html']}</div>"
     return (f"""{_tag(d['tag'])}
-<div style='position:relative'>{sparkle(560, 20, 25)}
-<h2 class='jua' style='font-size:{d.get('term_size', 116)}px;margin-top:26px'><em>{d['term']}</em></h2></div>
-<p style='font-size:38px;line-height:1.5;margin-top:22px'>{d['def_html']}</p>
-<div class='card' style='margin-top:40px'>
+<h2 class='jua' style='font-size:{d.get('term_size', 116)}px;margin-top:26px'><em>{d['term']}</em></h2>
+<p style='font-size:38px;line-height:1.5;margin-top:18px'>{d['def_html']}</p>
+<div class='card' style='margin-top:34px;padding:28px 34px'>
   <div class='label jua'>{d['analogy_title']}</div>
-  <div class='note' style='font-size:33px;color:#2A3555'>{d['analogy_html']}</div>
+  {f"<div class='an-row'>{img}{body}</div>" if img else body}
 </div>
 {_memo(d)}""", d.get("source", ""))
 
@@ -733,7 +764,7 @@ def g_reveal(d):
   <div class='rv-sub'>{d.get('answer_sub', '')}</div>
 </div>
 <div class='rv-row'>{minis}</div>
-{_bullets(d)}""", d.get("source", ""))
+{_bullets(d)}""", d.get("source", ""), False)
 
 
 def g_timeline(d):
@@ -790,7 +821,7 @@ def g_flows(d):
 def g_bars(d):
     """등락 막대 그래프(미국장 등) + 3줄 요약"""
     return (f"""{_title(d, 66)}
-<div class='card' style='margin-top:26px;padding:24px 30px 20px'>{_chart(d['chart'])}</div>
+<div class='card' style='margin-top:26px;padding:24px 30px 20px'>{_chart({**d['chart'], 'row': d['chart'].get('row', 66 if len(d['chart'].get('items', [])) <= 5 else 54)})}</div>
 {_bullets(d)}""", d.get("source", ""))
 
 
@@ -833,7 +864,8 @@ def main():
         for i, (inner, src, *rest) in enumerate(cards, 1):
             deco = rest[0] if rest else True
             f = out / f"card_{i:02d}.html"
-            f.write_text(page(content["date_label"], inner, i, total, src, deco), encoding="utf-8")
+            card_d = content["cards"][i - 1] if "cards" in content else None
+            f.write_text(page(content["date_label"], inner, i, total, src, deco, card_d), encoding="utf-8")
             pg.goto(f.as_uri())
             pg.wait_for_load_state("networkidle")
             pg.evaluate("document.fonts.ready")
