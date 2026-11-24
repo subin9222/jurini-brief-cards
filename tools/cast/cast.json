@@ -52,6 +52,10 @@
   "aircon": {
    "용어": "금통위(에어컨 리모컨 비유: 뜨거우면 금리 올려 식힘)",
    "made": "2026-11-23 Higgsfield gpt_image_2_6 (작업 ID f588fdfd-c282-4c97-b346-374c75f10eab)"
+  },
+  "sneaker_buyback": {
+   "용어": "숏커버링(빌린 운동화를 서둘러 되사 갚는 비유)",
+   "made": "2026-11-24 Higgsfield gpt_image_2_6 (작업 ID cb0f8e43-6d0f-4281-99a2-6faae85575bc)"
   }
  },
  "_music": {
@@ -59,5 +63,14 @@
   "lofi": "밝은 로파이 92BPM (2026-11-23)",
   "marimba": "마림바·피치카토 110BPM (2026-11-23)",
   "ticker": "미니멀 전자음·시세판 틱 100BPM (2026-11-23)"
+ },
+ "huang": {
+  "name": "젠슨 황 엔비디아 CEO",
+  "poses": {
+   "stand": "huang_stand.png"
+  },
+  "made": {
+   "stand": "2026-11-24 Higgsfield gpt_image_2_6 (작업 ID e5f16806-a9c4-4054-b51b-e003c92ba4b9)"
+  }
  }
 }

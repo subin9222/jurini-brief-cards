@@ -368,7 +368,10 @@ def svg_line(spec, w=820, h=240):
             anchor = "start" if i == 0 else "middle"
             above = i == imax or (i != imin and y > pt + 40)
             ty = y - 16 if above else y + 34
-            out.append(f"<text x='{x:.1f}' y='{ty:.1f}' text-anchor='{anchor}' {SVG_FONT} font-size='22' font-weight='700' fill='{NAVY}'>{_fmt(vals[i], dec)}</text>")
+            tx = x
+            if not above and ty > h - pb - 2:  # 아래 날짜 축과 겹치면 점 왼쪽에 단다
+                tx, ty, anchor = x - 16, y + 8, "end"
+            out.append(f"<text x='{tx:.1f}' y='{ty:.1f}' text-anchor='{anchor}' {SVG_FONT} font-size='22' font-weight='700' fill='{NAVY}'>{_fmt(vals[i], dec)}</text>")
     step = max(1, (n + 5) // 6)
     for i in range(n):
         if i % step == 0 or i == n - 1:
