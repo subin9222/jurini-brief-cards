@@ -191,14 +191,18 @@ push 후 card_01 주소가 HTTP 200 / image/jpeg로 열리는지 확인.
 
 ## 8. 게시 (승인 후에만) — 인스타그램 공식 API 직접 게시 (2026-11-23 전환, 무료·한도 하루 100건)
 Metricool은 더 이상 쓰지 않는다(무료 20건/월 한도). `tools/ig_post.py`로 @jurini.brief에 직접 게시한다.
-1. 비공개 저장소 연결: `add_repo(owner "subin9222", repo "jurini-secrets", access "read")` → `git clone --depth 1 https://github.com/subin9222/jurini-secrets /home/claude/jurini-secrets`.
-   토큰 파일 `/home/claude/jurini-secrets/ig_token.txt` (만료 없는 시스템 사용자 토큰, '주린이 브리핑' 포트폴리오). **토큰 내용을 출력·커밋·메시지에 절대 넣지 않는다.**
+1. 토큰 받기 (2026-11-24 변경 — Cowork 예약 작업은 저장소를 하나만 연결할 수 있어 jurini-secrets를 붙일 수 없음):
+   Google Drive 커넥터로 운영자 드라이브의 비공개 파일 `jurini_ig_token.txt`를 찾는다(`search_files`: `title = 'jurini_ig_token.txt' and trashed = false`, 여러 개면 아무거나 하나).
+   `download_file_content(fileId)`는 내용을 세션의 tool-results 폴더에 파일로 저장하고 경로만 알려 준다 → 그 파일을 `mv`로 `/home/claude/jurini-secrets/ig_token.txt`(폴더 700, 파일 600)로 옮긴다.
+   **토큰 내용을 출력·커밋·메시지에 절대 넣지 않는다**(cat·head 금지, 크기만 `wc -c`로 확인). `read_file_content`는 내용이 화면에 나오므로 쓰지 않는다.
+   드라이브에서 못 찾으면 게시 단계만 멈추고 운영자에게 "드라이브에 jurini_ig_token.txt가 없어요"라고 알린다. (예전 방식인 jurini-secrets 저장소 clone은 연결돼 있을 때만 대안으로 쓴다.)
 2. 컨펌 전에 `python3 tools/ig_post.py check --token <토큰파일>`로 계정이 jurini.brief인지 확인한다(아니면 멈추고 운영자에게 알림).
 3. 운영자가 "올려줘"라고 하면(카드·영상·캡션을 이미 push한 상태에서):
    - `python3 tools/ig_post.py carousel --token <토큰파일> --date YYYY-MM-DD` → 카드 7장 캐러셀 게시
    - 이어서 `python3 tools/ig_post.py reel --token <토큰파일> --date YYYY-MM-DD` → 릴스 게시(영상 처리에 1~2분)
    - 프로그램이 계정 이름(jurini.brief), 해시태그 5개 이하, 캡션 2200자 이하를 확인하고 어기면 멈춘다.
 4. 출력된 게시 링크(permalink) 두 개를 운영자에게 알린다. 오류가 나면 내용을 그대로 전하고 재시도는 한 번만.
+   - **재시도 전에 반드시 실제 게시 여부를 확인한다**: `media_publish`가 오류(예: 403 code 4 / subcode 2207051 "행동이 차단되었습니다")를 돌려줘도 실제로는 게시된 경우가 있다(2026-11-24 실제 사례). `GET /{IG_USER}/media?fields=timestamp,caption,permalink&limit=3`으로 방금 시각·캡션의 게시물이 있으면 재시도하지 않고 그 링크를 알린다(중복 게시 방지).
 5. 운영자가 "릴스는 나중에"처럼 말하면 그에 따른다. API는 예약 게시가 없으므로 '지금 게시'만 한다.
 - 인스타그램 'AI 정보' 표시를 API로 켜는 방법은 확인되지 않았다. 필요하면 운영자가 앱에서 게시물별로 켤 수 있다고 안내한다.
 - 비상 시(토큰 오류 등) 예전 방식: Metricool createScheduledPost(blogId 7871767)도 남아 있지만 무료 한도 20건/월에 주의.
