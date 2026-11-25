@@ -100,10 +100,14 @@ def main():
         if content.get("crisis"):
             music = rule["crisis"]
         else:
+            name = folder.name
+            shift = 0
+            if name.endswith("-morning"):  # 아침 이슈판은 같은 날 오후 브리핑과 다른 곡
+                name, shift = name[: -len("-morning")], 1
             try:
-                day = datetime.date.fromisoformat(folder.name).toordinal()
+                day = datetime.date.fromisoformat(name).toordinal() + shift
             except ValueError:
-                day = datetime.date.today().toordinal()
+                day = datetime.date.today().toordinal() + shift
             music = rule["rotate"][day % len(rule["rotate"])]
         print(f"music: {music}{' (위기일)' if content.get('crisis') else ''}")
     if music and not Path(music).exists():
