@@ -5,6 +5,7 @@
   python3 tools/ig_post.py carousel --token <토큰파일> --date YYYY-MM-DD    # 카드 7장 캐러셀 게시
   python3 tools/ig_post.py reel     --token <토큰파일> --date YYYY-MM-DD    # 릴스 게시
   python3 tools/ig_post.py recent   --token <토큰파일>                      # 최근 게시물 3개 보기
+  python3 tools/ig_post.py metrics  --token <토큰파일>                      # 최근 게시물 10개의 좋아요·댓글 수 (METRICS.md 기록용)
   (--dry-run 을 붙이면 컨테이너 준비까지만 하고 게시하지 않는다)
 
 - 토큰은 비공개 저장소 subin9222/jurini-secrets 의 ig_token.txt (절대 이 공개 저장소에 넣지 않는다).
@@ -123,7 +124,7 @@ def publish(tok, cid, dry, caption):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("action", choices=["check", "recent", "carousel", "reel"])
+    ap.add_argument("action", choices=["check", "recent", "metrics", "carousel", "reel"])
     ap.add_argument("--token", required=True)
     ap.add_argument("--date")
     ap.add_argument("--dry-run", action="store_true")
@@ -135,6 +136,12 @@ def main():
     if a.action == "recent":
         for m in recent_media(tok, 3):
             print(m["timestamp"], m["media_type"], m.get("permalink"), (m.get("caption") or "")[:40].replace("\n", " "))
+        return
+    if a.action == "metrics":  # 좋아요·댓글만 (공유·저장·도달은 앱 권한이 없어 API로 못 가져옴)
+        r = call(tok, "GET", f"{IG_USER}/media", {"fields": "timestamp,media_product_type,like_count,comments_count,permalink,caption", "limit": 10})
+        for m in r.get("data", []):
+            print(m["timestamp"], m.get("media_product_type"), f"좋아요 {m.get('like_count')} 댓글 {m.get('comments_count')}",
+                  m.get("permalink"), (m.get("caption") or "")[:30].replace("\n", " "))
         return
     if not a.date:
         raise SystemExit("--date YYYY-MM-DD 가 필요해요")
