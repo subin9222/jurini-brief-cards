@@ -70,6 +70,31 @@ def main():
     bad_q = re.findall(r"뭐 사셨|물린|수익률|계좌|인증|좋아요 누르|댓글 달면|드려요|추첨|베팅|오를까요\? 내릴까요", cap + q)
     add(not bad_q, "댓글: 금지 질문(매매 의향·손실 고백·대가·방향 내기) 없음", ",".join(bad_q))
 
+    # 용어는 매 게시물 새로 (2026-11-26 운영자 지시: "용어는 매일 바뀌어야 해")
+    term_card = next((x for x in cards if x["type"] == "term"), None)
+    if term_card:
+        from datetime import date, timedelta
+        def norm(t):
+            return re.sub(r"\(.*?\)|\s", "", t or "")
+        me = norm(term_card.get("term"))
+        today = date.fromisoformat(d.name[:10])
+        used = []
+        for f in sorted((ROOT / "cards").glob("*/content.json")):
+            if f.parent.resolve() == d.resolve():
+                continue
+            try:
+                fd = date.fromisoformat(f.parent.name[:10])
+            except ValueError:
+                continue
+            if not (today - timedelta(days=14) <= fd <= today):
+                continue
+            for t in re.findall(r'"term"\s*:\s*"([^"]+)"', f.read_text(encoding="utf-8")):
+                if norm(t) == me or (len(me) >= 2 and (me in norm(t) or norm(t) in me)):
+                    used.append(f"{f.parent.name}: {t}")
+        add(not used, "용어: 최근 2주(같은 날 아침·오후 포함)와 겹치지 않는 새 용어", f"'{term_card.get('term')}' 사용 이력: {used}" if used else term_card.get("term", ""))
+    else:
+        add(False, "용어: 용어 카드(term)가 있어야 함")
+
     # 기본 규칙
     tags = re.findall(r"#\S+", cap)
     add(len(tags) <= 5 and "#주린이" in tags, "해시태그 5개 이하 + #주린이", " ".join(tags))
