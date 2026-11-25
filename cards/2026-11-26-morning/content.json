@@ -4,16 +4,16 @@
   {
    "type": "cover_issue",
    "pill": "엔비디아 3일째",
-   "title_html": "AA 등급 엔비디아에<br>밤사이 날아온<br><em>경고장의 정체는?</em>",
-   "title_size": 86,
-   "quote_by": "11/26 새벽 4시쯤(한국 시간) 미국 신용평가사 S&P 발표",
+   "title_html": "시총 <em>−2조 달러</em><br>엔비디아에 날아온<br><em>경고장의 정체는?</em>",
+   "title_size": 88,
+   "quote_by": "기준: 10월 고점 이후 시가총액 · 11/26 새벽(한국 시간) S&P 발표",
    "scene_top": 0,
    "target": "경고장의 정체",
    "target_kind": "card",
    "speaker_kind": "none",
    "question_html": "정답과 카드 3장, 바로 다음 장 👉",
    "source": "로이터·인베스팅닷컴·파이낸셜뉴스·뉴스핌·아시아경제",
-   "sticker": "−2조$",
+   "sticker": "90일",
    "mascot": "surprised",
    "ticker": [
     {
@@ -172,7 +172,7 @@
     }
    ],
    "watch_html": "인상 뒤 '다음 인상' 신호가 나올지!",
-   "cta_title": "💬 더 놀란 건 등급 경고? 시총 2조 달러?",
+   "cta_title": "💬 내가 이사회라면? 1 유지 2 교체",
    "source": "이투데이·재경일보·시대일보·파이낸셜뉴스·서울경제",
    "mascot": "worried",
    "mascot_h": 210

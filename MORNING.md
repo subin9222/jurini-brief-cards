@@ -60,6 +60,7 @@
 ## 4. 만들기·게시
 - 렌더: `python3 tools/render.py cards/YYYY-MM-DD-morning/content.json cards/YYYY-MM-DD-morning`
 - 릴스: `python3 tools/reel.py cards/YYYY-MM-DD-morning` (음악은 같은 날 오후와 다른 곡이 자동 선택됨, 위기일이면 marimba)
+- 점검(필수): `python3 tools/check.py cards/YYYY-MM-DD-morning` → ❌ 0개가 될 때까지 고친다(`WORKFLOW.md` 6-1).
 - 게시(승인 후): `python3 tools/ig_post.py carousel --token <토큰파일> --date YYYY-MM-DD-morning`, 이어서 `reel` 같은 방식.
 - 오류가 나면 재시도 전에 반드시 실제 게시 여부 확인(`WORKFLOW.md` 8단계).
 - **아침 전용 문장 틀**(`WORKFLOW.md` 문장 틀 표에 더해): `밤사이 [이슈], 한 줄 반응`(예: "밤사이 또 시작된 트럼프 관세 발언"), `[어제 이야기] 밤사이 후속`. 같은 틀을 이틀 연속 쓰지 않는다.
