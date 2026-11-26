@@ -3,17 +3,17 @@
  "cards": [
   {
    "type": "cover_issue",
-   "pill": "엔비디아 4일째",
-   "title_html": "中 AI 컴퓨팅 <em>24%</em>의 뒷문<br>엔비디아가 동남아에서<br><em>멈춘 것은?</em>",
-   "title_size": 84,
-   "quote_by": "기준: 중국 AI 컴퓨팅 중 해외 데이터센터 공급 비중(IFP 추산) · 11/26 FT 보도",
+   "pill": "아침 이슈",
+   "title_html": "엔비디아가<br>동남아 <em>4개국</em>에서<br><em>멈춘 것은?</em>",
+   "title_size": 92,
+   "quote_by": "기준: 말레이시아·싱가포르·태국·인도네시아 · 11/26 FT 보도",
    "scene_top": 0,
    "target": "멈춘 것의 정체",
    "target_kind": "card",
    "speaker_kind": "none",
    "question_html": "정답과 카드 3장, 바로 다음 장 👉",
    "source": "FT·파이낸셜뉴스·서울경제·뉴스핌·AI타임스·아시아경제",
-   "sticker": "4개국",
+   "sticker": "중국 겨냥",
    "mascot": "surprised",
    "ticker": [
     {
@@ -21,7 +21,7 @@
      "value": "−3.91%"
     },
     {
-     "name": "싱가포르",
+     "name": "싱가포르 매출",
      "value": "+72%"
     },
     {
