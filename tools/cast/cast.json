@@ -76,7 +76,12 @@
   },
   "highway_pause": {
    "용어": "사이드카(고속도로 차단기를 잠깐 내려 숨 고르는 비유)",
-   "made": "2026-11-27 Higgsfield gpt_image_2_6 (작업 ID 5aaadf81-7e55-4899-b87d-51027eb18f2b)"
+   "made": "2026-11-27 Higgsfield gpt_image_2_6 (작업 ID 5aaadf81-7e55-4899-b87d-51027eb18f2b)",
+   "메모": "2026-11-27 오후 사이드카 용어용으로 그렸으나 중급자 개편으로 용어가 순환매로 바뀌어 미사용"
+  },
+  "watering_rotation": {
+   "용어": "순환매(물뿌리개가 화분을 차례로 옮겨 다니며 물 받은 화분만 잠깐 자라는 비유)",
+   "made": "2026-11-27 Higgsfield gpt_image_2_6 (작업 ID ae1045ae-301b-475a-ba2d-c716b1ac6730)"
   }
  },
  "_music": {

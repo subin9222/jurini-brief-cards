@@ -201,13 +201,13 @@
   {
    "type": "term",
    "tag": "05 · 오늘의 용어",
-   "term": "사이드카",
-   "def_html": "선물 급등락이 1분 이어지면 <b style='color:var(--yellow)'>프로그램 매매를<br>5분</b> 멈춰요.<br><span style='font-size:28px;color:#CBD3EA'>기준: 코스피200 선물 ±5% · 코스닥150 선물 ±6%(현물 ±3%)</span>",
-   "analogy_title": "고속도로 차단기로 비유하면",
-   "analogy_html": "몰려드는 차량(프로그램<br>주문)만 잠깐 세우고,<br>일반 차선은 그대로<br>달려요.",
-   "memo_html": "시장별 <b>하루 1번</b>, 장 마감 40분 전부터는 안 걸려요.<br>오늘은 상승 쪽 <b>매수 사이드카</b>(10:22)였어요.",
+   "term": "순환매",
+   "def_html": "시장 자금이 한 업종·테마에서 <b style='color:var(--yellow)'>다른 업종·테마로<br>차례로 옮겨 가며</b> 주가를 끌어올리는 흐름이에요.",
+   "analogy_title": "물뿌리개로 비유하면",
+   "analogy_html": "물뿌리개가 화분을<br>차례로 옮겨 다니면<br>물 받는 화분만<br>잠깐 쑥 자라요.",
+   "memo_html": "오늘 로봇주처럼 <b>공시 없는 테마 수급</b>은 돈이 다음 테마로 옮기면<br>되돌림도 빨라요. 실적이 받쳐 주는지 함께 봐야 해요.",
    "mascot": "explain",
-   "analogy_img": "highway_pause"
+   "analogy_img": "watering_rotation"
   },
   {
    "type": "preview",
