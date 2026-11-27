@@ -61,7 +61,7 @@ p {{ font-size:40px; color:#B9C2DE; margin-top:28px; line-height:1.5; }}
 .id {{ display:inline-block; margin-top:40px; background:#FFD24A; color:#0E1A3A; font-size:46px; padding:14px 40px; border-radius:40px; }}
 </style></head><body><div class='box'>
 <img class='m' src='{mascot}'>
-<h1>매일 장 마감 후<br><em>주린이 눈높이</em>로 정리해요</h1>
+<h1>매일 장 마감 후<br><em>한 단계 깊게</em> 정리해요</h1>
 <p>저장해 두고 뉴스 볼 때 꺼내 보세요 📌</p>
 <div class='id'>@jurini.brief 팔로우</div>
 </div></body></html>"""

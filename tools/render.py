@@ -269,7 +269,7 @@ def build(c):
 
     t = c["term"]
     cards.append((f"""
-<div class='tag jua'>05 · 오늘의 주린이 용어</div>
+<div class='tag jua'>05 · 오늘의 용어</div>
 <div style='position:relative'>{sparkle(560, 20, 25)}
 <h2 class='jua' style='font-size:{t.get('term_size', 116)}px;margin-top:26px'><em>{t['term']}</em></h2></div>
 <p style='font-size:38px;line-height:1.5;margin-top:22px'>{t['def_html']}</p>

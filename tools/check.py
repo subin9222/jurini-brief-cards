@@ -97,7 +97,7 @@ def main():
 
     # 기본 규칙
     tags = re.findall(r"#\S+", cap)
-    add(len(tags) <= 5 and "#주린이" in tags, "해시태그 5개 이하 + #주린이", " ".join(tags))
+    add(len(tags) <= 5 and "#주식공부" in tags, "해시태그 5개 이하 + #주식공부(2026-11-27 중급자 개편)", " ".join(tags))
     add(tags == re.findall(r"#\S+", reel), "릴스 캡션 해시태그가 게시물과 같음")
     add(len(cap) <= 2200, "캡션 2200자 이하", f"{len(cap)}자")
     banned = re.findall(r"사세요|파세요|목표가|반토막|확률 100%|무조건|급등 예정|오를 거예요|내릴 거예요", cap + json.dumps(c, ensure_ascii=False))
