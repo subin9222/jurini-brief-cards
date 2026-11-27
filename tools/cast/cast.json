@@ -73,6 +73,10 @@
   "short_sneaker": {
    "용어": "공매도(빌린 운동화를 팔고, 값이 내린 뒤 사서 돌려주는 비유)",
    "made": "2026-11-26 Higgsfield gpt_image_2_6 (작업 ID c6174115-4f91-4abf-8b61-9ba7942eb30c)"
+  },
+  "highway_pause": {
+   "용어": "사이드카(고속도로 차단기를 잠깐 내려 숨 고르는 비유)",
+   "made": "2026-11-27 Higgsfield gpt_image_2_6 (작업 ID 5aaadf81-7e55-4899-b87d-51027eb18f2b)"
   }
  },
  "_music": {
